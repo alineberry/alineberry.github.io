@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-05-20T11:55:06-06:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Adam Lineberry</title><subtitle>Data Science Blog</subtitle><author><name>Adam Lineberry</name></author><entry><title type="html">How AUROC is Actually Calculated</title><link href="http://localhost:4000/calculating-auroc/" rel="alternate" type="text/html" title="How AUROC is Actually Calculated" /><published>2019-05-20T00:00:00-06:00</published><updated>2019-05-20T00:00:00-06:00</updated><id>http://localhost:4000/calculating-auroc</id><content type="html" xml:base="http://localhost:4000/calculating-auroc/">&lt;h1 id=&quot;h1-heading&quot;&gt;H1 heading&lt;/h1&gt;
+
+&lt;h2 id=&quot;h2-heading&quot;&gt;H2 heading&lt;/h2&gt;
+
+&lt;p&gt;Python code block:&lt;/p&gt;
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;numpy&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;randn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Inline code &lt;code class=&quot;highlighter-rouge&quot;&gt;x+y=z&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Here’s some math:&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;z=x+y&lt;/script&gt;
+
+&lt;p&gt;Here’s some inline math &lt;script type=&quot;math/tex&quot;&gt;z=x+y&lt;/script&gt;&lt;/p&gt;</content><author><name>Adam Lineberry</name></author><category term="machine learning" /><category term="data science" /><summary type="html">How AUROC is Actually Calculated</summary></entry></feed>
