@@ -1,12 +1,12 @@
 ---
-title: "How AUROC is Actually Calculated"
+title: "How AUROC is Calculated"
 date: 2019-05-20
-tags: [machine learning, data science]
-header:
-  image: "images/header.jpg"
-excerpt: "How AUROC is Actually Calculated"
+tags: [machine learning]
+excerpt: "A walkthrough of how the common computation is performed"
 mathjax: true
 ---
+
+**This is a test page**
 
 # H1 heading
 

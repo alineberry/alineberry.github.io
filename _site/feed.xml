@@ -1,4 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-05-20T11:55:06-06:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Adam Lineberry</title><subtitle>Data Science Blog</subtitle><author><name>Adam Lineberry</name></author><entry><title type="html">How AUROC is Actually Calculated</title><link href="http://localhost:4000/calculating-auroc/" rel="alternate" type="text/html" title="How AUROC is Actually Calculated" /><published>2019-05-20T00:00:00-06:00</published><updated>2019-05-20T00:00:00-06:00</updated><id>http://localhost:4000/calculating-auroc</id><content type="html" xml:base="http://localhost:4000/calculating-auroc/">&lt;h1 id=&quot;h1-heading&quot;&gt;H1 heading&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-05-20T12:52:02-06:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Adam Lineberry</title><subtitle>Data Science Blog</subtitle><author><name>Adam Lineberry</name></author><entry><title type="html">How AUROC is Calculated</title><link href="http://localhost:4000/calculating-auroc/" rel="alternate" type="text/html" title="How AUROC is Calculated" /><published>2019-05-20T00:00:00-06:00</published><updated>2019-05-20T00:00:00-06:00</updated><id>http://localhost:4000/calculating-auroc</id><content type="html" xml:base="http://localhost:4000/calculating-auroc/">&lt;p&gt;&lt;strong&gt;This is a test page&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;h1-heading&quot;&gt;H1 heading&lt;/h1&gt;
 
 &lt;h2 id=&quot;h2-heading&quot;&gt;H2 heading&lt;/h2&gt;
 
@@ -13,4 +15,4 @@
 
 &lt;script type=&quot;math/tex; mode=display&quot;&gt;z=x+y&lt;/script&gt;
 
-&lt;p&gt;Here’s some inline math &lt;script type=&quot;math/tex&quot;&gt;z=x+y&lt;/script&gt;&lt;/p&gt;</content><author><name>Adam Lineberry</name></author><category term="machine learning" /><category term="data science" /><summary type="html">How AUROC is Actually Calculated</summary></entry></feed>
+&lt;p&gt;Here’s some inline math &lt;script type=&quot;math/tex&quot;&gt;z=x+y&lt;/script&gt;&lt;/p&gt;</content><author><name>Adam Lineberry</name></author><category term="machine learning" /><summary type="html">A walkthrough of how the common computation is performed</summary></entry></feed>
