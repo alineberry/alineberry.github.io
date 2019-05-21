@@ -1,12 +1,13 @@
 ---
-title: "How AUROC is Calculated"
+title: "Sample Test Post"
 date: 2019-05-20
-tags: [machine learning]
-excerpt: "A walkthrough of how the common computation is performed"
+tags: []
+excerpt: "Just a reference for post syntax"
 mathjax: true
 ---
 
 **This is a test page**
+
 
 # H1 heading
 
