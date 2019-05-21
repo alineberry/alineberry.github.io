@@ -1,5 +1,5 @@
 ---
-title: "How ROC Curve Calculations are Actually Implemented"
+title: "Interesting Details about ROC Curve Calculations"
 date: 2019-05-20
 tags: [machine learning]
 excerpt: "A discussion and code-based walkthrough on how common AUROC computations are performed"
@@ -7,6 +7,8 @@ mathjax: true
 ---
 
 The area under the receiving operator characteristic curve (commonly known as "AUC" or "AUROC") is a widely used metric for evaluating binary classifiers. Most data scientists are familiar with the famous curve itself, which plots the true positive rate against the false positive rate, and are familiar with integrals (i.e., area under the curve). So, it's a pretty straightforward concept theoretically, but how is it actually calculated for a real dataset and a real model? That is what we'll be digging into in this post. There's some interesting intuition to be gained by understanding the exact implementation (which is quite simple).
+
+Quick disclaimer here: It is not the intent of this post to show how these calculations are implemented in production; there are variations and optimizations to the methodology and code presented. Rather, the intent is to show a basic, easy to understand implementation with the objective of building the reader's intuition.
 
 <img src="{{ site.url }}{{ site.baseurl }}/images/2019-05-20-how-auroc-is-calculated/Roccurves.png" alt="Sample ROC Curve" height="200">
 <figcaption>Sample ROC Curve</figcaption>
