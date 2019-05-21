@@ -715,3 +715,5 @@ Whew! It checks out.
 ## Conclusion
 
 In this post we covered the intuition behind ROC/AUC calculations, and warned against some common mistakes. We also proved the calculations can be performed using unnormalized model scores, and performed hand-calculations for a custom Pytorch logistic regression model trained on synthetic data and verified the results against scikit-learn results.
+
+The notebook associated with the code in this post can be found [here](https://github.com/acetherace/alcore/blob/master/notebooks/how-auroc-is-calculated.ipynb).
