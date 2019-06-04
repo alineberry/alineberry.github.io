@@ -1,0 +1,666 @@
+<!doctype html>
+<!--
+  Minimal Mistakes Jekyll Theme 4.16.3 by Michael Rose
+  Copyright 2013-2019 Michael Rose - mademistakes.com | @mmistakes
+  Free for personal and commercial use under the MIT license
+  https://github.com/mmistakes/minimal-mistakes/blob/master/LICENSE
+-->
+<html lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8">
+
+<!-- begin _includes/seo.html --><title>[DRAFT] Latent Variable Models, Expectation Maximization, and Variational Inference - Adam Lineberry</title>
+<meta name="description" content="Introduction to the general theory of variational inference">
+
+
+
+<meta property="og:type" content="article">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="Adam Lineberry">
+<meta property="og:title" content="[DRAFT] Latent Variable Models, Expectation Maximization, and Variational Inference">
+<meta property="og:url" content="http://localhost:4000/vae-series/variational-inference">
+
+
+  <meta property="og:description" content="Introduction to the general theory of variational inference">
+
+
+
+
+
+
+
+  <meta property="article:published_time" content="2019-05-20T00:00:00-06:00">
+
+
+
+
+
+  
+
+  
+
+
+<link rel="canonical" href="http://localhost:4000/vae-series/variational-inference">
+
+
+
+
+
+
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Adam Lineberry",
+      "url": "http://localhost:4000",
+      "sameAs": null
+    }
+  </script>
+
+
+
+
+
+
+
+<!-- end _includes/seo.html -->
+
+
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="Adam Lineberry Feed">
+
+<!-- https://t.co/dKP3o1e -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script>
+  document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + ' js ';
+</script>
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css">
+
+<!--[if IE ]>
+  <style>
+    /* old IE unsupported flexbox fixes */
+    .greedy-nav .site-title {
+      padding-right: 3em;
+    }
+    .greedy-nav button {
+      position: absolute;
+      top: 0;
+      right: 0;
+      height: 100%;
+    }
+  </style>
+<![endif]-->
+
+
+
+    <!-- start custom head snippets -->
+
+<!-- insert favicons. use https://realfavicongenerator.net/ -->
+
+<!-- end custom head snippets -->
+
+  </head>
+
+  <body class="layout--single">
+
+    <!--[if lt IE 9]>
+<div class="notice--danger align-center" style="margin: 0;">You are using an <strong>outdated</strong> browser. Please <a href="https://browsehappy.com/">upgrade your browser</a> to improve your experience.</div>
+<![endif]-->
+
+    
+
+<div class="masthead">
+  <div class="masthead__inner-wrap">
+    <div class="masthead__menu">
+      <nav id="site-nav" class="greedy-nav">
+        
+        <a class="site-title" href="/">Adam Lineberry</a>
+        <ul class="visible-links"><li class="masthead__menu-item">
+              <a href="/about/" >About</a>
+            </li><li class="masthead__menu-item">
+              <a href="/machine-learning/" >Machine Learning Blog</a>
+            </li></ul>
+        
+        <button class="search__toggle" type="button">
+          <span class="visually-hidden">Toggle search</span>
+          <svg class="icon" width="16" height="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15.99 16">
+            <path d="M15.5,13.12L13.19,10.8a1.69,1.69,0,0,0-1.28-.55l-0.06-.06A6.5,6.5,0,0,0,5.77,0,6.5,6.5,0,0,0,2.46,11.59a6.47,6.47,0,0,0,7.74.26l0.05,0.05a1.65,1.65,0,0,0,.5,1.24l2.38,2.38A1.68,1.68,0,0,0,15.5,13.12ZM6.4,2A4.41,4.41,0,1,1,2,6.4,4.43,4.43,0,0,1,6.4,2Z" transform="translate(-.01)"></path>
+          </svg>
+        </button>
+        
+        <button class="greedy-nav__toggle hidden" type="button">
+          <span class="visually-hidden">Toggle menu</span>
+          <div class="navicon"></div>
+        </button>
+        <ul class="hidden-links hidden"></ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+    <div class="initial-content">
+      
+
+
+
+<div id="main" role="main">
+  
+  <div class="sidebar sticky">
+  
+
+
+<div itemscope itemtype="https://schema.org/Person">
+
+  
+    <div class="author__avatar">
+      
+
+      
+        <img src="/images/headshot.png" alt="Adam Lineberry" itemprop="image">
+      
+    </div>
+  
+
+  <div class="author__content">
+    
+      <h3 class="author__name" itemprop="name">Adam Lineberry</h3>
+    
+    
+      <p class="author__bio" itemprop="description">
+        Data Scientist
+      </p>
+    
+  </div>
+
+  <div class="author__urls-wrapper">
+    <button class="btn btn--inverse">Follow</button>
+    <ul class="author__urls social-icons">
+      
+        <li itemprop="homeLocation" itemscope itemtype="https://schema.org/Place">
+          <i class="fas fa-fw fa-map-marker-alt" aria-hidden="true"></i> <span itemprop="name">Denver, CO</span>
+        </li>
+      
+
+      
+        
+          
+            <li><a href="https://www.linkedin.com/in/adam-lineberry/" rel="nofollow noopener noreferrer"><i class="fab fa-fw fa-linkedin" aria-hidden="true"></i> LinkedIn</a></li>
+          
+        
+          
+            <li><a href="https://github.com/acetherace" rel="nofollow noopener noreferrer"><i class="fab fa-fw fa-github" aria-hidden="true"></i> GitHub</a></li>
+          
+        
+          
+        
+          
+        
+          
+            <li><a href="https://twitter.com/adam_lineberry_" rel="nofollow noopener noreferrer"><i class="fab fa-fw fa-twitter-square" aria-hidden="true"></i> Twitter</a></li>
+          
+        
+          
+        
+          
+        
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      <!--
+  <li>
+    <a href="http://link-to-whatever-social-network.com/user/" itemprop="sameAs" rel="nofollow noopener noreferrer">
+      <i class="fas fa-fw" aria-hidden="true"></i> Custom Social Profile Link
+    </a>
+  </li>
+-->
+    </ul>
+  </div>
+</div>
+
+  
+  </div>
+
+
+  <article class="page" itemscope itemtype="https://schema.org/CreativeWork">
+    <meta itemprop="headline" content="[DRAFT] Latent Variable Models, Expectation Maximization, and Variational Inference">
+    <meta itemprop="description" content="Introduction to the general theory of variational inference">
+    <meta itemprop="datePublished" content="May 20, 2019">
+    
+
+    <div class="page__inner-wrap">
+      
+        <header>
+          <h1 id="page-title" class="page__title" itemprop="headline">[DRAFT] Latent Variable Models, Expectation Maximization, and Variational Inference
+</h1>
+          
+            <p class="page__meta"><i class="far fa-clock" aria-hidden="true"></i> 
+
+
+
+
+  6 minute read
+</p>
+          
+        </header>
+      
+
+      <section class="page__content" itemprop="text">
+        
+        <p>Latent variable models are a powerful form of unsupervised machine learning used for a variety of tasks such as clustering, dimensionality reduction, data generation, and topic modeling. The basic premise is that there is some latent and unobserved variable <script type="math/tex">z_{i}</script> that causes the observed data <script type="math/tex">x_{i}</script>. The graphical model (or Bayesian network) representing this paradigm is as follows:</p>
+
+<p><img src="http://localhost:4000/images/vae/graphical-model.png" alt="" width="200" class="align-center" /></p>
+
+<p>Latent variable models model the probability distribution:</p>
+
+<script type="math/tex; mode=display">p_{\theta}(x, z) = p_{\theta}(x \lvert z)p_{\theta}(z)</script>
+
+<p>and are trained by maximizing the marginal likelihood:</p>
+
+<script type="math/tex; mode=display">p_{\theta}(x) = \int p_{\theta}(x \lvert z)p_{\theta}(z)dz</script>
+
+<p>The introduction of latent variables allow us to more accurately model the data and discover valuable insights from the latent variables themselves. In the topic modeling case we know beforehand that each document in a coprous tends to have a focus on a particular topic or subset of topics. For example, articles in a newspaper typically address topics such as politics, business, or sports. Real world corpora encounted in industry can be more complex and ambiguous, such as customer support transcripts, product reviews, or legal contracts. By structuring a model to incorporate this knowledge we are able to more accurately calculate the probability of a document, and perhaps more importantly, discover the topics being discussed in a corpus and provide topic assignment to individual documents.</p>
+
+<p>Learning probability distributions such as <script type="math/tex">p_{\theta}(x)</script>, <script type="math/tex">p_{\theta}(z \lvert x)</script>, and <script type="math/tex">p_{\theta}(x \lvert z)</script> can be used for tasks like anomaly detection or data generation. More commonly though, the identification of the latent variables themselves are the main contribution of latent variable models. In the Gaussian mixture model (GMM) the latent variables are the cluster assignments. In latent Dirichlet allocation (LDA) the latent variables are the topic assignments. In the variational autoencoder (VAE) the latent variables are the compressed representations of that data.</p>
+
+<h2 id="marginal-likelihood-training">Marginal likelihood training</h2>
+
+<p>Latent variable models are trained by maximizing the marginal likelihood. Since the logarithm is a monotonically increasing function, the marginal log likelihood is maximized instead since the logarithm simplifies the computation.</p>
+
+<script type="math/tex; mode=display">\theta = \underset{\theta}{\mathrm{argmax}}\ p_{\theta}(x) = \underset{\theta}{\mathrm{argmax}}\ \log p_{\theta}(x)</script>
+
+<p>Given a training dataset <script type="math/tex">D</script> composed of <script type="math/tex">N</script> data points <script type="math/tex">x_i</script>, <script type="math/tex">D = \{x_1, x_2, \ldots, x_N\}</script> where each <script type="math/tex">x_i \in \Bbb R^d</script>, the marginal log likelihood is expressed as</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+\log p_{\theta}(x) &= \log \prod_{i=1}^{N} p_{\theta}(x_i) \tag{1} \\
+&= \sum_{i=1}^{N} \log p_{\theta}(x_{i}) \\
+&= \sum_{i=1}^{N} \log \int p_{\theta}(x_i, z)dz \\
+&= \sum_{i=1}^{N} \log \int p_{\theta}(x_i \lvert z)p_{\theta}(z)dz
+\end{align} %]]></script>
+
+<p>Ideally we would maximize this expression directly, but the integral is typically intractable. For example, if <script type="math/tex">z</script> is high dimensional, the integral takes the form <script type="math/tex">\int\int\int\dots\int</script>.</p>
+
+<p>As previously discussed, another requirement for latent variable models to be useful is the the ability to calculate the posterior of the latent variables.</p>
+
+<script type="math/tex; mode=display">p_{\theta}(z \lvert x) = \frac{p_{\theta}(x \lvert z)p_{\theta}(z)}{p_{\theta}(x)}</script>
+
+<p>Again, this calculation is typically intractable because <script type="math/tex">p_{\theta}(x)</script> appears in the denominator. There are two main approaches to handling this issue: Monte Carlo sampling and variational inference. We will be focusing on variational inference in this post.</p>
+
+<h2 id="derivation-of-variational-lower-bound">Derivation of Variational Lower Bound</h2>
+
+<p>To start, let’s assume that the posterior <script type="math/tex">p_{\theta}(z \lvert x)</script> is intractable. To deal with this we will consider another distribution <script type="math/tex">q_{\phi}(z)</script>. We would like <script type="math/tex">q_{\phi}(z)</script> to closely approximate <script type="math/tex">p_{\theta}(z \lvert x)</script> and we are free to choose any form we like for <script type="math/tex">q</script>. For example, we could choose <script type="math/tex">q</script> to be static or conditional on <script type="math/tex">x</script> in some way (as you might guess, <script type="math/tex">q</script> <strong>is</strong> typically conditioned on <script type="math/tex">x</script>). A good approximation can be seen as one that minimizes the KL divergence (for a primer on KL divergence, see <a href="http://localhost:4000/vae-series/kl-divergence">this post</a>):</p>
+
+<script type="math/tex; mode=display">KL[q_{\phi}(z) \lVert p_{\theta}(z \lvert x)] =
+-\underset{z}{\sum} q_{\phi}(z) \log \frac{p_{\theta}(z \lvert x)}{q_{\phi}(z)}</script>
+
+<p>Now, substituting using Bayes’ rule and arranging variables in a convenient way:</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+&= -\underset{z}{\sum} q_{\phi}(z) \log \bigg( \frac{p_{\theta}(x,z)}{q_{\phi}(z)} \cdot \frac{1}{p_{\theta}(x)} \bigg) \\
+&= -\underset{z}{\sum} q_{\phi}(z) \bigg( \log\frac{p_{\theta}(x,z)}{q_{\phi}(z)} - \log p_{\theta}(x) \bigg) \\
+&= -\underset{z}{\sum} q_{\phi}(z) \log \frac{p_{\theta}(x,z)}{q_{\phi}(z)} + \underset{z}{\sum} q_{\phi}(z) \log p_{\theta}(x)
+\end{align} %]]></script>
+
+<p>Note that in the second term, <script type="math/tex">\underset{z}{\sum} q(z) \log p(x)</script>, <script type="math/tex">\log p(x)</script> is constant w.r.t. the summation so it can be moved outside, leaving <script type="math/tex">\log p(x) \underset{z}{\sum} q(z)</script>. By definition of a probability distribution, <script type="math/tex">\underset{z}{\sum} q(z) = 1</script>, so the term ultimately simplifies to <script type="math/tex">\log p(x)</script>. So, we are left with:</p>
+
+<script type="math/tex; mode=display">KL[q_{\phi}(z) \lVert p_{\theta}(z \lvert x)] =
+-\underset{z}{\sum} q_{\phi}(z) \log \frac{p_{\theta}(x,z)}{q_{\phi}(z)} + \log p_{\theta}(x)</script>
+
+<p>Rearranging for clarity:</p>
+
+<script type="math/tex; mode=display">\log p_{\theta}(x) = KL[q_{\phi}(z) \lVert p_{\theta}(z \lvert x)] + \underset{z}{\sum} q_{\phi}(z) \log \frac{p_{\theta}(x,z)}{q_{\phi}(z)} \tag{2}</script>
+
+<p>Now, let’s circle back to Eq. 1. Notice that we have derived an expression for the marginal log likelihood <script type="math/tex">\log p_{\theta}(x)</script> composed of two terms. The first term is the KL divergence between our variational distribution <script type="math/tex">q_{\phi}(z)</script> and the intractable posterior <script type="math/tex">p_{\theta}(z \lvert x)</script>. The second term is is called the <strong>variational lower bound</strong> or evidence lower bound (the acronym <strong>ELBO</strong> is frequently used in the literature).</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+\mathcal{L} &= \underset{z}{\sum} q_{\phi}(z) \log \frac{p_{\theta}(x,z)}{q_{\phi}(z)} \\
+&= \mathbb{E_{q_{\phi}(z)}} \log \frac{p_{\theta}(x,z)}{q_{\phi}(z)}
+\end{align} %]]></script>
+
+<p>Since <script type="math/tex">KL[q \lVert p] \geq 0\ \forall q, p</script>, it is immediate that <script type="math/tex">\mathcal{L}</script> is indeed a lower bound for the marginal log likelihood: <script type="math/tex">\mathcal{L} \leq \log p_{\theta}(x)</script>. Variational inference methods focus on the tractable task of maximizing the ELBO instead of maximizing the likelihood directly.</p>
+
+<h2 id="optimization-methods">Optimization methods</h2>
+
+<p>Most optimization methods involve some kind of iterative updating procedure where <script type="math/tex">\mathcal{L}</script> is maximized w.r.t. <script type="math/tex">\phi</script> and then w.r.t. <script type="math/tex">\theta</script>.</p>
+
+<h3 id="expectation-maximization">Expectation Maximization</h3>
+
+<p>In the simplest case, when <script type="math/tex">p_{\theta}(z \lvert x)</script> is tractable (e.g., GMMs), the expectation maximization (EM) algorithm can be applied. First, parameters <script type="math/tex">\theta</script> are randomly initialized. EM then exploits the tractable posterior by holding <script type="math/tex">\theta</script> fixed and updating <script type="math/tex">\phi</script> by simply setting <script type="math/tex">q_{\phi}(z) = p_{\theta}(z \lvert x)</script> in the <em>E-step</em>. Notice that since we are holding <script type="math/tex">\theta</script> fixed, the left hand side of Eq. 2 is a constant during this step, and the update to <script type="math/tex">\phi</script> sets the KL term to zero. This means the ELBO term is equal to the log likelihood, which is the best possible optimization step. It’s interesting because, in this interpretation, the EM algorithm does not bother with the ELBO directly in the E-step and instead maximizes it indirectly by minimizing the KL term.</p>
+
+<p>In the <em>M-step</em>, <script type="math/tex">\phi</script> is fixed and <script type="math/tex">\theta</script> is updated by maximizing the ELBO. Isolating the terms that depend on <script type="math/tex">\theta</script></p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+\mathcal{L} &= \mathbb{E_{q_{\phi}(z)}} \log \frac{p_{\theta}(x,z)}{q_{\phi}(z)} \\
+&= \mathbb{E_{q_{\phi}(z)}} \big( \log p_{\theta}(x,z) - \log q_{\phi}(z) \big) \\
+&= \mathbb{E_{q_{\phi}(z)}} \log p_{\theta}(x,z) - \mathbb{E_{q_{\phi}(z)}} \log q_{\phi}(z)
+\end{align} %]]></script>
+
+<p>Since the second term does not depend on <script type="math/tex">\theta</script>, we see that the M-step is simply maximizing the expected joint likelihood of the data</p>
+
+<script type="math/tex; mode=display">\theta = \underset{\theta}{\mathrm{argmax}}\ \mathbb{E_{q_{\phi}(z)}} \log p_{\theta}(x,z)</script>
+
+<p>EM is guaranteed to converge to a local maximum or a saddle point of the marginal likelihood.</p>
+
+<h3 id="other-methods">Other methods</h3>
+
+<p>There are plenty of cases where the posterior <script type="math/tex">p_{\theta}(z \lvert x)</script> is not tractable. A more recent approach to solving this problem is to use deep neural networks to jointly learn <script type="math/tex">q_{\phi}(z \lvert x)</script> and <script type="math/tex">p_{\theta}(x \lvert z)</script> with an ELBO loss function, such as in the variational autoencoder. For more on this see my <a href="http://localhost:4000/vae-series/vae-theory">post on variational autoencoder theory</a>, where we will further refine the theory presented here to form the basis for the variational autoencoder.</p>
+
+<h2 id="resources">Resources</h2>
+
+<p>[1] Volodymyr Kuleshov, Stefano Ermon, <a href="https://ermongroup.github.io/cs228-notes/learning/latent/">Learning in latent variable models</a></p>
+
+<p>[2] Ali Ghodsi, <a href="https://youtu.be/uaaqyVS9-rM">Lec : Deep Learning, Variational Autoencoder, Oct 12 2017 [Lect 6.2]</a></p>
+
+<p>[3] Daniil Polykovskiy, Alexander Novikov, National Research University Higher School of Economics, Coursera, <a href="https://www.coursera.org/learn/bayesian-methods-in-machine-learning">Bayesian Methods for Machine Learning</a></p>
+
+        
+      </section>
+
+      <footer class="page__meta">
+        
+        
+  
+
+
+  
+  
+  
+
+  <p class="page__taxonomy">
+    <strong><i class="fas fa-fw fa-tags" aria-hidden="true"></i> Tags: </strong>
+    <span itemprop="keywords">
+    
+      
+      
+      <a href="/tags/#machine-learning" class="page__taxonomy-item" rel="tag">machine learning</a>
+    
+    </span>
+  </p>
+
+
+
+
+        
+          <p class="page__date"><strong><i class="fas fa-fw fa-calendar-alt" aria-hidden="true"></i> Updated:</strong> <time datetime="2019-05-20T00:00:00-06:00">May 20, 2019</time></p>
+        
+      </footer>
+
+      <section class="page__share">
+  
+    <h4 class="page__share-title">Share on</h4>
+  
+
+  <a href="https://twitter.com/intent/tweet?text=%5BDRAFT%5D+Latent+Variable+Models%2C+Expectation+Maximization%2C+and+Variational+Inference%20http%3A%2F%2Flocalhost%3A4000%2Fvae-series%2Fvariational-inference" class="btn btn--twitter" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Twitter"><i class="fab fa-fw fa-twitter" aria-hidden="true"></i><span> Twitter</span></a>
+
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Flocalhost%3A4000%2Fvae-series%2Fvariational-inference" class="btn btn--facebook" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Facebook"><i class="fab fa-fw fa-facebook" aria-hidden="true"></i><span> Facebook</span></a>
+
+  <a href="https://www.linkedin.com/shareArticle?mini=true&url=http%3A%2F%2Flocalhost%3A4000%2Fvae-series%2Fvariational-inference" class="btn btn--linkedin" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on LinkedIn"><i class="fab fa-fw fa-linkedin" aria-hidden="true"></i><span> LinkedIn</span></a>
+</section>
+
+
+      
+  <nav class="pagination">
+    
+      <a href="/vae-series/kl-divergence" class="pagination--pager" title="[DRAFT] A Quick Primer on KL Divergence
+">Previous</a>
+    
+    
+      <a href="/vae-series/vae-code-experiments" class="pagination--pager" title="[DRAFT] Variational Autoencoder Code and Experiments
+">Next</a>
+    
+  </nav>
+
+    </div>
+
+    
+  </article>
+
+  
+  
+    <div class="page__related">
+      <h4 class="page__related-title">You may also enjoy</h4>
+      <div class="grid__wrapper">
+        
+          
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title" itemprop="headline">
+      
+        <a href="/vae-series" rel="permalink">[DRAFT] Blog Post Series: From KL Divergence to Variational Autoencoder in PyTorch
+</a>
+      
+    </h2>
+    
+      <p class="page__meta"><i class="far fa-clock" aria-hidden="true"></i> 
+
+
+
+
+  1 minute read
+</p>
+    
+    <p class="archive__item-excerpt" itemprop="description">Landing page for the blog post series
+</p>
+  </article>
+</div>
+
+        
+          
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title" itemprop="headline">
+      
+        <a href="/vae-series/vae-theory" rel="permalink">[DRAFT] Variational Autoencoder Theory
+</a>
+      
+    </h2>
+    
+      <p class="page__meta"><i class="far fa-clock" aria-hidden="true"></i> 
+
+
+
+
+  14 minute read
+</p>
+    
+    <p class="archive__item-excerpt" itemprop="description">Transforming general theory into VAE-specific theory
+</p>
+  </article>
+</div>
+
+        
+          
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title" itemprop="headline">
+      
+        <a href="/vae-series/vae-code-experiments" rel="permalink">[DRAFT] Variational Autoencoder Code and Experiments
+</a>
+      
+    </h2>
+    
+      <p class="page__meta"><i class="far fa-clock" aria-hidden="true"></i> 
+
+
+
+
+  17 minute read
+</p>
+    
+    <p class="archive__item-excerpt" itemprop="description">Final connections between theory and lines of code
+</p>
+  </article>
+</div>
+
+        
+          
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title" itemprop="headline">
+      
+        <a href="/vae-series/kl-divergence" rel="permalink">[DRAFT] A Quick Primer on KL Divergence
+</a>
+      
+    </h2>
+    
+      <p class="page__meta"><i class="far fa-clock" aria-hidden="true"></i> 
+
+
+
+
+  3 minute read
+</p>
+    
+    <p class="archive__item-excerpt" itemprop="description">Introductory discussion on KL divergence with an emphasis on building intuition from the mathematics
+</p>
+  </article>
+</div>
+
+        
+      </div>
+    </div>
+  
+  
+</div>
+
+    </div>
+
+    
+      <div class="search-content">
+        <div class="search-content__inner-wrap"><input type="search" id="search" aria-placeholder="Enter your search term..." class="search-input" tabindex="-1" placeholder="Enter your search term..." />
+    <div id="results" class="results"></div></div>
+
+      </div>
+    
+
+    <div class="page__footer">
+      <footer>
+        <!-- start custom footer snippets -->
+
+<!-- end custom footer snippets -->
+        <div class="page__footer-follow">
+  <ul class="social-icons">
+    
+      <li><strong>Follow:</strong></li>
+    
+
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+
+    <li><a href="/feed.xml"><i class="fas fa-fw fa-rss-square" aria-hidden="true"></i> Feed</a></li>
+  </ul>
+</div>
+
+<div class="page__footer-copyright">&copy; 2019 Adam Lineberry. Powered by <a href="https://jekyllrb.com" rel="nofollow">Jekyll</a> &amp; <a href="https://mademistakes.com/work/minimal-mistakes-jekyll-theme/" rel="nofollow">Minimal Mistakes</a>.</div>
+
+      </footer>
+    </div>
+
+    
+  <script src="/assets/js/main.min.js"></script>
+  <script defer src="https://use.fontawesome.com/releases/v5.8.1/js/all.js" integrity="sha384-g5uSoOSBd7KkhAMlnQILrecXvzst9TdC09/VM+pjDTCM+1il8RHz5fKANTFFb+gQ" crossorigin="anonymous"></script>
+
+
+
+
+<script src="/assets/js/lunr/lunr.min.js"></script>
+<script src="/assets/js/lunr/lunr-store.js"></script>
+<script src="/assets/js/lunr/lunr-en.js"></script>
+
+
+
+
+
+
+
+<script type="text/javascript" async
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+
+  </body>
+</html>

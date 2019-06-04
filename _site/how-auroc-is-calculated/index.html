@@ -9,7 +9,7 @@
   <head>
     <meta charset="utf-8">
 
-<!-- begin _includes/seo.html --><title>How ROC Curve Calculations are Actually Implemented - Adam Lineberry</title>
+<!-- begin _includes/seo.html --><title>Interesting Details about ROC Curve Calculations - Adam Lineberry</title>
 <meta name="description" content="A discussion and code-based walkthrough on how common AUROC computations are performed">
 
 
@@ -17,7 +17,7 @@
 <meta property="og:type" content="article">
 <meta property="og:locale" content="en_US">
 <meta property="og:site_name" content="Adam Lineberry">
-<meta property="og:title" content="How ROC Curve Calculations are Actually Implemented">
+<meta property="og:title" content="Interesting Details about ROC Curve Calculations">
 <meta property="og:url" content="http://localhost:4000/how-auroc-is-calculated/">
 
 
@@ -123,6 +123,13 @@
             </li><li class="masthead__menu-item">
               <a href="/machine-learning/" >Machine Learning Blog</a>
             </li></ul>
+        
+        <button class="search__toggle" type="button">
+          <span class="visually-hidden">Toggle search</span>
+          <svg class="icon" width="16" height="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15.99 16">
+            <path d="M15.5,13.12L13.19,10.8a1.69,1.69,0,0,0-1.28-.55l-0.06-.06A6.5,6.5,0,0,0,5.77,0,6.5,6.5,0,0,0,2.46,11.59a6.47,6.47,0,0,0,7.74.26l0.05,0.05a1.65,1.65,0,0,0,.5,1.24l2.38,2.38A1.68,1.68,0,0,0,15.5,13.12ZM6.4,2A4.41,4.41,0,1,1,2,6.4,4.43,4.43,0,0,1,6.4,2Z" transform="translate(-.01)"></path>
+          </svg>
+        </button>
         
         <button class="greedy-nav__toggle hidden" type="button">
           <span class="visually-hidden">Toggle menu</span>
@@ -266,7 +273,7 @@
 
 
   <article class="page" itemscope itemtype="https://schema.org/CreativeWork">
-    <meta itemprop="headline" content="How ROC Curve Calculations are Actually Implemented">
+    <meta itemprop="headline" content="Interesting Details about ROC Curve Calculations">
     <meta itemprop="description" content="A discussion and code-based walkthrough on how common AUROC computations are performed">
     <meta itemprop="datePublished" content="May 20, 2019">
     
@@ -274,7 +281,7 @@
     <div class="page__inner-wrap">
       
         <header>
-          <h1 id="page-title" class="page__title" itemprop="headline">How ROC Curve Calculations are Actually Implemented
+          <h1 id="page-title" class="page__title" itemprop="headline">Interesting Details about ROC Curve Calculations
 </h1>
           
             <p class="page__meta"><i class="far fa-clock" aria-hidden="true"></i> 
@@ -282,7 +289,7 @@
 
 
 
-  9 minute read
+  13 minute read
 </p>
           
         </header>
@@ -290,7 +297,9 @@
 
       <section class="page__content" itemprop="text">
         
-        <p>The area under the receiving operator characteristic curve (commonly known as “AUC” or “AUROC”) is a widely used metric for evaluating binary classifiers. Most data scientists are familiar with the famous curve itself, which plots the true positive rate against the false positive rate, and are familiar with integrals (i.e., area under the curve). So, it’s a pretty straightforward concept theoretically, but how is it actually calculated for a real dataset and a real model? That is what we’ll be digging into in this post. There’s some interesting intuition to be gained by understanding the exact implementation (which is quite simple).</p>
+        <p>The area under the receiver operating characteristic curve (commonly known as “AUC” or “AUROC”) is a widely used metric for evaluating binary classifiers. Most data scientists are familiar with the famous curve itself, which plots the true positive rate against the false positive rate, and are familiar with integrals (i.e., area under the curve). So, it’s a pretty straightforward concept theoretically, but how is it actually calculated for a real dataset and a real model? That is what we’ll be digging into in this post. There’s some interesting intuition to be gained by understanding the exact implementation (which is quite simple).</p>
+
+<p>Quick disclaimer here: It is not the intent of this post to show how these calculations are implemented in production; there are variations and optimizations to the methodology and code presented. Rather, the intent is to show a basic, easy to understand implementation with the objective of building the reader’s intuition.</p>
 
 <p><img src="http://localhost:4000/images/2019-05-20-how-auroc-is-calculated/Roccurves.png" alt="Sample ROC Curve" height="200" /></p>
 <figcaption>Sample ROC Curve</figcaption>
@@ -946,7 +955,7 @@
     <h4 class="page__share-title">Share on</h4>
   
 
-  <a href="https://twitter.com/intent/tweet?text=How+ROC+Curve+Calculations+are+Actually+Implemented%20http%3A%2F%2Flocalhost%3A4000%2Fhow-auroc-is-calculated%2F" class="btn btn--twitter" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Twitter"><i class="fab fa-fw fa-twitter" aria-hidden="true"></i><span> Twitter</span></a>
+  <a href="https://twitter.com/intent/tweet?text=Interesting+Details+about+ROC+Curve+Calculations%20http%3A%2F%2Flocalhost%3A4000%2Fhow-auroc-is-calculated%2F" class="btn btn--twitter" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Twitter"><i class="fab fa-fw fa-twitter" aria-hidden="true"></i><span> Twitter</span></a>
 
   <a href="https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Flocalhost%3A4000%2Fhow-auroc-is-calculated%2F" class="btn btn--facebook" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Facebook"><i class="fab fa-fw fa-facebook" aria-hidden="true"></i><span> Facebook</span></a>
 
@@ -960,7 +969,7 @@
       <a href="#" class="pagination--pager disabled">Previous</a>
     
     
-      <a href="/sample-test/" class="pagination--pager" title="Sample Test Post
+      <a href="/vae-series/kl-divergence" class="pagination--pager" title="[DRAFT] A Quick Primer on KL Divergence
 ">Next</a>
     
   </nav>
@@ -985,7 +994,7 @@
     
     <h2 class="archive__item-title" itemprop="headline">
       
-        <a href="/sample-test/" rel="permalink">Sample Test Post
+        <a href="/vae-series" rel="permalink">[DRAFT] Blog Post Series: From KL Divergence to Variational Autoencoder in PyTorch
 </a>
       
     </h2>
@@ -995,10 +1004,94 @@
 
 
 
-  less than 1 minute read
+  1 minute read
 </p>
     
-    <p class="archive__item-excerpt" itemprop="description">Just a reference for post syntax
+    <p class="archive__item-excerpt" itemprop="description">Landing page for the blog post series
+</p>
+  </article>
+</div>
+
+        
+          
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title" itemprop="headline">
+      
+        <a href="/vae-series/vae-theory" rel="permalink">[DRAFT] Variational Autoencoder Theory
+</a>
+      
+    </h2>
+    
+      <p class="page__meta"><i class="far fa-clock" aria-hidden="true"></i> 
+
+
+
+
+  14 minute read
+</p>
+    
+    <p class="archive__item-excerpt" itemprop="description">Transforming general theory into VAE-specific theory
+</p>
+  </article>
+</div>
+
+        
+          
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title" itemprop="headline">
+      
+        <a href="/vae-series/vae-code-experiments" rel="permalink">[DRAFT] Variational Autoencoder Code and Experiments
+</a>
+      
+    </h2>
+    
+      <p class="page__meta"><i class="far fa-clock" aria-hidden="true"></i> 
+
+
+
+
+  17 minute read
+</p>
+    
+    <p class="archive__item-excerpt" itemprop="description">Final connections between theory and lines of code
+</p>
+  </article>
+</div>
+
+        
+          
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title" itemprop="headline">
+      
+        <a href="/vae-series/variational-inference" rel="permalink">[DRAFT] Latent Variable Models, Expectation Maximization, and Variational Inference
+</a>
+      
+    </h2>
+    
+      <p class="page__meta"><i class="far fa-clock" aria-hidden="true"></i> 
+
+
+
+
+  8 minute read
+</p>
+    
+    <p class="archive__item-excerpt" itemprop="description">Introduction to the general theory of variational inference
 </p>
   </article>
 </div>
@@ -1012,6 +1105,12 @@
 
     </div>
 
+    
+      <div class="search-content">
+        <div class="search-content__inner-wrap"><input type="search" id="search" aria-placeholder="Enter your search term..." class="search-input" tabindex="-1" placeholder="Enter your search term..." />
+    <div id="results" class="results"></div></div>
+
+      </div>
     
 
     <div class="page__footer">
@@ -1056,6 +1155,10 @@
 
 
 
+
+<script src="/assets/js/lunr/lunr.min.js"></script>
+<script src="/assets/js/lunr/lunr-store.js"></script>
+<script src="/assets/js/lunr/lunr-en.js"></script>
 
 
 
