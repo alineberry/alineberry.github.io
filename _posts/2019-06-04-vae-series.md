@@ -23,6 +23,6 @@ The ultimate goal of the series is to provide the full picture of variational au
 Posts:
 
 1. [**A Quick Primer on KL Divergence**]({{ site.url }}{{ site.baseurl }}/vae-series/kl-divergence). KL divergence is fundamental tool that is used everywhere in this series. This is a quick introduction for those who may not be familiar already.
-1. [**Latent Variable Models, Expectation Maximization, and Variational Inference**]({{ site.url }}{{ site.baseurl }}/vae-series/kl-divergence). This post dives into latent variable models and how to train them. It also introduces expectation maximization (EM), which is very related to the VAE.
+1. [**Latent Variable Models, Expectation Maximization, and Variational Inference**]({{ site.url }}{{ site.baseurl }}/vae-series/variational-inference). This post dives into latent variable models and how to train them. It also introduces expectation maximization (EM), which is very related to the VAE.
 1. [**Variational Autoencoder Theory**]({{ site.url }}{{ site.baseurl }}/vae-series/vae-theory). Here, we continue to develop the theory into the VAE objective function and discuss how the VAE model architecture is designed to achieve specific probabilistic goals.
 1. [**Variational Autoencoder Code and Experiments**]({{ site.url }}{{ site.baseurl }}/vae-series/vae-theory). The culmination of the series, this post hammers home how to implement the theoretical framework in code. It also provides the code itself and shows some interesting experiments.
