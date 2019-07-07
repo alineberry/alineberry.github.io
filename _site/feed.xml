@@ -1,4 +1,194 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-06-04T15:02:53-06:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Adam Lineberry</title><subtitle>Data Science Blog</subtitle><author><name>Adam Lineberry</name></author><entry><title type="html">[DRAFT] Variational Autoencoder Code and Experiments</title><link href="http://localhost:4000/vae-series/vae-code-experiments" rel="alternate" type="text/html" title="[DRAFT] Variational Autoencoder Code and Experiments" /><published>2019-05-28T00:00:00-06:00</published><updated>2019-05-28T00:00:00-06:00</updated><id>http://localhost:4000/vae-series/vae-experiments</id><content type="html" xml:base="http://localhost:4000/vae-series/vae-code-experiments">&lt;p&gt;In this post we will build and train a variational autoencoder (VAE) in PyTorch, tying everything back to the theory derived in my &lt;a href=&quot;http://localhost:4000/vae-series/vae-theory&quot;&gt;post on VAE theory&lt;/a&gt;. The first half of the post provides discussion on the key points in the implementation. The second half provides the code itself along with some annotations.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-07-07T09:25:47-06:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Adam Lineberry</title><subtitle>Data Science Blog</subtitle><author><name>Adam Lineberry</name></author><entry><title type="html">A Quick Primer on KL Divergence</title><link href="http://localhost:4000/vae-series/kl-divergence" rel="alternate" type="text/html" title="A Quick Primer on KL Divergence" /><published>2019-07-07T00:00:00-06:00</published><updated>2019-07-07T00:00:00-06:00</updated><id>http://localhost:4000/vae-series/KL-divergence</id><content type="html" xml:base="http://localhost:4000/vae-series/kl-divergence">&lt;p class=&quot;notice--info&quot;&gt;This is the first post in my series: &lt;a href=&quot;http://localhost:4000/vae-series/&quot;&gt;From KL Divergence to Variational Autoencoder in PyTorch&lt;/a&gt;. The next post in the series is &lt;a href=&quot;http://localhost:4000/vae-series/variational-inference&quot;&gt;Latent Variable Models, Expectation Maximization, and Variational Inference&lt;/a&gt;.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;The Kullback-Leibler divergence, better known as &lt;em&gt;KL divergence&lt;/em&gt;, is a way to measure the “distance” between two probability distributions over the same variable. In this post we will consider distributions &lt;script type=&quot;math/tex&quot;&gt;q&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;p&lt;/script&gt; over the random variable &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt;.&lt;/p&gt;
+
+&lt;p&gt;It’s beneficial to be able to recognize the different forms of the KL divergence equation when studying derivations or writing your own equations.&lt;/p&gt;
+
+&lt;p&gt;For discrete random variables it takes the forms:&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;KL[ q \lVert p ] = \sum\limits_{z} q(z) \log\frac{q(z)}{p(z)} = -\sum\limits_{z} q(z)\log\frac{p(z)}{q(z)}&lt;/script&gt;
+
+&lt;p&gt;For continuous random variables it takes the forms:&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;KL[ q \lVert p ] = \int q(z) \log \frac{q(z)}{p(z)}dz = - \int q(z) \log \frac{p(z)}{q(z)}dz&lt;/script&gt;
+
+&lt;p&gt;And in general it can be written as an expected value:&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;KL[ q \lVert p ] = \mathbb{E_{q(z)}} \log \frac{q(z)}{p(z)} = - \mathbb{E_{q(z)}} \log \frac{p(z)}{q(z)}&lt;/script&gt;
+
+&lt;p&gt;To build some intuition, let’s focus on the following form:&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;KL[ q \lVert p ] = \mathbb{E_{q(z)}} \log \frac{q(z)}{p(z)}&lt;/script&gt;
+
+&lt;p&gt;Notice that the term &lt;script type=&quot;math/tex&quot;&gt;\log q(z)/p(z)&lt;/script&gt; is the difference between two log probabilities: &lt;script type=&quot;math/tex&quot;&gt;\log q(z) - \log p(z)&lt;/script&gt;. So, the intuition stems from the fact that KL divergence is the expected difference in log probabilities over &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt;. Although not entirely technically correct, imagine the following to help build an intuition: consider two, perhaps similar, univariate probability density functions &lt;script type=&quot;math/tex&quot;&gt;q(z)&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;p(z)&lt;/script&gt; and imagine sliding across the domain of &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; and observing the difference &lt;script type=&quot;math/tex&quot;&gt;q(z)-p(z)&lt;/script&gt; at every point. This is kind of how KL divergence quantifies the “distance” between two distributions.&lt;/p&gt;
+
+&lt;p&gt;Now, a couple of important properties that I won’t prove:&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;KL[q||p] \neq KL[p||q]&lt;/script&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;KL[q||p] \geq 0 \quad \forall q, p&lt;/script&gt;
+
+&lt;p&gt;The asymmetric property begs the question: should I use &lt;script type=&quot;math/tex&quot;&gt;KL[q\|p]&lt;/script&gt; or &lt;script type=&quot;math/tex&quot;&gt;KL[p\|q]&lt;/script&gt;? This leads to the subject of forward versus reverse KL divergence.&lt;/p&gt;
+
+&lt;h2 id=&quot;forward-vs-reverse-kl-divergence&quot;&gt;Forward vs. Reverse KL Divergence&lt;/h2&gt;
+
+&lt;p&gt;In practice, KL divergence is typically used to learn an approximate probability distribution &lt;script type=&quot;math/tex&quot;&gt;q&lt;/script&gt; to estimate a theoretic but intractable distribution &lt;script type=&quot;math/tex&quot;&gt;p&lt;/script&gt;. Typically &lt;script type=&quot;math/tex&quot;&gt;q&lt;/script&gt; will be of simpler form than &lt;script type=&quot;math/tex&quot;&gt;p&lt;/script&gt;, since &lt;script type=&quot;math/tex&quot;&gt;p&lt;/script&gt;’s complexity is what drives us to approximate it in the first place. As a simple example, &lt;script type=&quot;math/tex&quot;&gt;p&lt;/script&gt; could be a bimodal distribution and &lt;script type=&quot;math/tex&quot;&gt;q&lt;/script&gt; a unimodal one. When thinking about forward versus backward KL, think of &lt;script type=&quot;math/tex&quot;&gt;p&lt;/script&gt; as fixed and &lt;script type=&quot;math/tex&quot;&gt;q&lt;/script&gt; as something fluid that we are free to mold to &lt;script type=&quot;math/tex&quot;&gt;p&lt;/script&gt;.&lt;/p&gt;
+
+&lt;p&gt;Forward KL takes the form&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;KL[ p || q ] = \sum\limits_{z}p(z) \log\frac{p(z)}{q(z)}&lt;/script&gt;
+
+&lt;p&gt;As you can see from this equation and the figure below, there is a penalty anywhere &lt;script type=&quot;math/tex&quot;&gt;p(z) &gt; 0&lt;/script&gt; that &lt;script type=&quot;math/tex&quot;&gt;q&lt;/script&gt; is not covering. In fact, if &lt;script type=&quot;math/tex&quot;&gt;q(z)=0&lt;/script&gt; in a region where &lt;script type=&quot;math/tex&quot;&gt;p(z)&gt;0&lt;/script&gt;, the KL divergence blows up because &lt;script type=&quot;math/tex&quot;&gt;\lim_{q(z) \to 0} \log \frac{p(z)}{q(z)} \to \infty&lt;/script&gt;. This results in learning a &lt;script type=&quot;math/tex&quot;&gt;q&lt;/script&gt; that spreads out to cover all regions where &lt;script type=&quot;math/tex&quot;&gt;p&lt;/script&gt; has any density. This is known as “zero avoiding”.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/vae/forward-KL.png&quot; alt=&quot;&quot; width=&quot;400&quot; class=&quot;align-center&quot; /&gt;&lt;/p&gt;
+&lt;figcaption&gt;Illustration of the &quot;zero-avoiding&quot; behavior of forward KL. Shows a reasonable distribution q with a high forward KL divergence (top), and a different distribution q with a lower forward KL divergence (bottom).&lt;/figcaption&gt;
+
+&lt;p&gt;Reverse KL takes the form&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;KL[ q || p ] = \sum\limits_{z}q(z) \log\frac{q(z)}{p(z)}&lt;/script&gt;
+
+&lt;p&gt;As seen from the equation and the figure below, reverse KL has a much different behavior. Now, the KL divergence will blow up anywhere &lt;script type=&quot;math/tex&quot;&gt;p(z)=0&lt;/script&gt; unless the weighting term &lt;script type=&quot;math/tex&quot;&gt;q(z)=0&lt;/script&gt;. In other words, &lt;script type=&quot;math/tex&quot;&gt;q(z)&lt;/script&gt; is encouraged to be zero everywhere that &lt;script type=&quot;math/tex&quot;&gt;p(z)&lt;/script&gt; is zero. This is called “zero-forcing” behavior.&lt;/p&gt;
+
+&lt;p&gt;For example, if &lt;script type=&quot;math/tex&quot;&gt;p&lt;/script&gt; has probability density in two disjoint regions in space, a &lt;script type=&quot;math/tex&quot;&gt;q&lt;/script&gt; with limited complexity may not be able to span the zero-probability space between these regions. In this case, the learned &lt;script type=&quot;math/tex&quot;&gt;q&lt;/script&gt; would only have density in one of the two dense regions of &lt;script type=&quot;math/tex&quot;&gt;p&lt;/script&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/vae/reverse-KL.png&quot; alt=&quot;&quot; width=&quot;400&quot; class=&quot;align-center&quot; /&gt;&lt;/p&gt;
+&lt;figcaption&gt;Illustration of the &quot;zero-forcing&quot; behavior of reverse KL. Shows a reasonable distribution q with a high reverse KL divergence (top), and a different distribution q with a lower reverse KL divergence (bottom).&lt;/figcaption&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;KL divergence is roughly a measure of distance between two probability distributions. There are different forms of the KL divergence equation. You can bring a negative out front by flipping the fraction inside the logarithm. You can also write it as an expectation.&lt;/p&gt;
+
+&lt;p&gt;Numerous machine learning models and algorithms use KL divergence as part of their loss function. By exploiting the structure of the specific model at hand, the KL divergence equation can often be simplified and optimized via gradient descent.&lt;/p&gt;
+
+&lt;p&gt;KL divergence is asymmetric and it’s important to understand the differences between forward and reverse KL.&lt;/p&gt;
+
+&lt;p&gt;My &lt;a href=&quot;http://localhost:4000/vae-series/variational-inference&quot;&gt;next post&lt;/a&gt; builds on KL divergence to explore latent variable models, expectation maximization, variational inference, and the ELBO.&lt;/p&gt;
+
+&lt;h2 id=&quot;resources&quot;&gt;Resources&lt;/h2&gt;
+
+&lt;p&gt;[1] Eric Jang, &lt;a href=&quot;https://blog.evjang.com/2016/08/variational-bayes.html&quot;&gt;A Beginner’s Guide to Variational Methods: Mean-Field Approximation&lt;/a&gt;&lt;/p&gt;</content><author><name>Adam Lineberry</name></author><category term="machine learning" /><summary type="html">Introductory discussion on KL divergence with an emphasis on building intuition from the mathematics</summary></entry><entry><title type="html">Latent Variable Models, Expectation Maximization, and Variational Inference</title><link href="http://localhost:4000/vae-series/variational-inference" rel="alternate" type="text/html" title="Latent Variable Models, Expectation Maximization, and Variational Inference" /><published>2019-07-07T00:00:00-06:00</published><updated>2019-07-07T00:00:00-06:00</updated><id>http://localhost:4000/vae-series/variational-inference</id><content type="html" xml:base="http://localhost:4000/vae-series/variational-inference">&lt;p class=&quot;notice--info&quot;&gt;This is the second post in my series: &lt;a href=&quot;http://localhost:4000/vae-series/&quot;&gt;From KL Divergence to Variational Autoencoder in PyTorch&lt;/a&gt;. The previous post in the series is &lt;a href=&quot;http://localhost:4000/vae-series/kl-divergence&quot;&gt;A Quick Primer on KL Divergence&lt;/a&gt; and the next post is &lt;a href=&quot;http://localhost:4000/vae-series/vae-theory&quot;&gt;Variational Autoencoder Theory&lt;/a&gt;.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Latent variable models are a powerful form of [typically unsupervised] machine learning used for a variety of tasks such as clustering, dimensionality reduction, data generation, and topic modeling. The basic premise is that there is some latent and unobserved variable &lt;script type=&quot;math/tex&quot;&gt;z_{i}&lt;/script&gt; that causes the observed data point &lt;script type=&quot;math/tex&quot;&gt;x_{i}&lt;/script&gt;. Here is the graphical model (or Bayesian network) representation:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/vae/graphical-model.png&quot; alt=&quot;&quot; width=&quot;200&quot; class=&quot;align-center&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Latent variable models model the probability distribution:&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;p_{\theta}(x, z) = p_{\theta}(x \lvert z)p_{\theta}(z)&lt;/script&gt;
+
+&lt;p&gt;and are trained by maximizing the marginal likelihood:&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;p_{\theta}(x) = \int p_{\theta}(x \lvert z)p_{\theta}(z)dz&lt;/script&gt;
+
+&lt;p&gt;The introduction of latent variables allow us to more accurately model the data and discover valuable insights from the latent variables themselves. In the topic modeling case we know beforehand that each document in a corpus tends to have a focus on a particular topic or subset of topics. For example, articles in a newspaper typically address topics such as politics, business, or sports. Real world corpora encountered in industry, such as customer support transcripts, product reviews, or legal contracts, can be more complex and ambiguous but the concept still applies. By structuring a model to incorporate this knowledge we are able to more accurately calculate the probability of a document, and perhaps more importantly, discover the topics being discussed in a corpus and provide topic assignment to individual documents.&lt;/p&gt;
+
+&lt;p&gt;The learned probability distributions such as &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(x)&lt;/script&gt;, &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(z \lvert x)&lt;/script&gt;, and &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(x \lvert z)&lt;/script&gt; can be used directly for tasks like anomaly detection or data generation. More commonly though, the main contribution is inference of the latent variables themselves from these distributions. In the Gaussian mixture model (GMM) the latent variables are the cluster assignments. In latent Dirichlet allocation (LDA) the latent variables are the topic assignments. In the variational autoencoder (VAE) the latent variables are the compressed representations of that data.&lt;/p&gt;
+
+&lt;h2 id=&quot;marginal-likelihood-training&quot;&gt;Marginal likelihood training&lt;/h2&gt;
+
+&lt;p&gt;Latent variable models are trained by maximizing the marginal likelihood of the observed data under the model parameters &lt;script type=&quot;math/tex&quot;&gt;\theta&lt;/script&gt;. Since the logarithm is a monotonically increasing function, the marginal log likelihood is maximized instead since the logarithm simplifies the computation.&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\theta = \underset{\theta}{\mathrm{argmax}}\ p_{\theta}(x) = \underset{\theta}{\mathrm{argmax}}\ \log p_{\theta}(x)&lt;/script&gt;
+
+&lt;p&gt;Given a training dataset &lt;script type=&quot;math/tex&quot;&gt;X&lt;/script&gt; consisting of &lt;script type=&quot;math/tex&quot;&gt;N&lt;/script&gt; data points &lt;script type=&quot;math/tex&quot;&gt;\{x_1, x_2, \dots, x_N\}&lt;/script&gt;, the marginal log likelihood is expressed as&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{align}
+\log p_{\theta}(X) &amp;= \log \prod_{i=1}^{N} p_{\theta}(x_i) \tag{1} \\
+&amp;= \sum_{i=1}^{N} \log p_{\theta}(x_{i}) \\
+&amp;= \sum_{i=1}^{N} \log \int p_{\theta}(x_i, z_i)dz \\
+&amp;= \sum_{i=1}^{N} \log \int p_{\theta}(x_i \lvert z_i)p_{\theta}(z_i)dz
+\end{align} %]]&gt;&lt;/script&gt;
+
+&lt;p&gt;Ideally we would maximize this expression directly, but the integral is typically intractable. For example, if &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; is high dimensional, the integral takes the form &lt;script type=&quot;math/tex&quot;&gt;\int\int\int\dots\int&lt;/script&gt;.&lt;/p&gt;
+
+&lt;p&gt;As previously discussed, we must also be able to compute the posterior of the latent variables in order to gain utility from these models:&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;p_{\theta}(z \lvert x) = \frac{p_{\theta}(x \lvert z)p_{\theta}(z)}{p_{\theta}(x)}&lt;/script&gt;
+
+&lt;p&gt;Again, this calculation is typically intractable because &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(x)&lt;/script&gt; appears in the denominator. There are two main approaches to handling this issue: Monte Carlo sampling and variational inference. We will be focusing on variational inference in this post.&lt;/p&gt;
+
+&lt;h2 id=&quot;derivation-of-variational-lower-bound&quot;&gt;Derivation of Variational Lower Bound&lt;/h2&gt;
+
+&lt;p&gt;To start, let’s assume that the posterior &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(z \lvert x)&lt;/script&gt; is intractable. To deal with this we will introduce a new distribution &lt;script type=&quot;math/tex&quot;&gt;q_{\phi}(z)&lt;/script&gt;. We would like &lt;script type=&quot;math/tex&quot;&gt;q_{\phi}(z)&lt;/script&gt; to closely approximate &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(z \lvert x)&lt;/script&gt; and we are free to choose any form we like for &lt;script type=&quot;math/tex&quot;&gt;q&lt;/script&gt;. For example, we could choose &lt;script type=&quot;math/tex&quot;&gt;q&lt;/script&gt; to be static or conditional on &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; in some way (as you might guess, &lt;script type=&quot;math/tex&quot;&gt;q&lt;/script&gt; &lt;strong&gt;is&lt;/strong&gt; typically conditioned on &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt;). A good approximation can be seen as one that minimizes the KL divergence between the distributions (for a primer on KL divergence, see &lt;a href=&quot;http://localhost:4000/vae-series/kl-divergence&quot;&gt;this post&lt;/a&gt;):&lt;/p&gt;
+
+&lt;p class=&quot;notice&quot;&gt;Note: For simplicity I will be using summations instead of integrals in the derivation.&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;KL[q_{\phi}(z) \lVert p_{\theta}(z \lvert x)] =
+-\underset{z}{\sum} q_{\phi}(z) \log \frac{p_{\theta}(z \lvert x)}{q_{\phi}(z)}&lt;/script&gt;
+
+&lt;p&gt;Now, substituting using Bayes’ rule and arranging variables in a convenient way:&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{align}
+&amp;= -\underset{z}{\sum} q_{\phi}(z) \log \bigg( \frac{p_{\theta}(x,z)}{q_{\phi}(z)} \cdot \frac{1}{p_{\theta}(x)} \bigg) \\
+&amp;= -\underset{z}{\sum} q_{\phi}(z) \bigg( \log\frac{p_{\theta}(x,z)}{q_{\phi}(z)} - \log p_{\theta}(x) \bigg) \\
+&amp;= -\underset{z}{\sum} q_{\phi}(z) \log \frac{p_{\theta}(x,z)}{q_{\phi}(z)} + \underset{z}{\sum} q_{\phi}(z) \log p_{\theta}(x)
+\end{align} %]]&gt;&lt;/script&gt;
+
+&lt;p&gt;Note that in the second term, &lt;script type=&quot;math/tex&quot;&gt;\underset{z}{\sum} q_{\phi}(z) \log p_{\theta}(x)&lt;/script&gt;, &lt;script type=&quot;math/tex&quot;&gt;\log p_{\theta}(x)&lt;/script&gt; is constant w.r.t. the summation so it can be moved outside, leaving &lt;script type=&quot;math/tex&quot;&gt;\log p_{\theta}(x) \underset{z}{\sum} q_{\phi}(z)&lt;/script&gt;. By definition of a probability distribution, &lt;script type=&quot;math/tex&quot;&gt;\underset{z}{\sum} q_{\phi}(z) = 1&lt;/script&gt;, so the term ultimately simplifies to &lt;script type=&quot;math/tex&quot;&gt;\log p_{\theta}(x)&lt;/script&gt;. So, we are left with:&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;KL[q_{\phi}(z) \lVert p_{\theta}(z \lvert x)] =
+-\underset{z}{\sum} q_{\phi}(z) \log \frac{p_{\theta}(x,z)}{q_{\phi}(z)} + \log p_{\theta}(x)&lt;/script&gt;
+
+&lt;p&gt;Rearranging for clarity:&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\log p_{\theta}(x) = KL[q_{\phi}(z) \lVert p_{\theta}(z \lvert x)] + \underset{z}{\sum} q_{\phi}(z) \log \frac{p_{\theta}(x,z)}{q_{\phi}(z)} \tag{2}&lt;/script&gt;
+
+&lt;p&gt;Now, let’s circle back to Eq. 1. Notice that we have derived an expression for the marginal log likelihood &lt;script type=&quot;math/tex&quot;&gt;\log p_{\theta}(x)&lt;/script&gt; composed of two terms. The first term is the KL divergence between our variational distribution &lt;script type=&quot;math/tex&quot;&gt;q_{\phi}(z)&lt;/script&gt; and the intractable posterior &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(z \lvert x)&lt;/script&gt;. The second term is is called the &lt;strong&gt;variational lower bound&lt;/strong&gt; or evidence lower bound (the acronym &lt;strong&gt;ELBO&lt;/strong&gt; is frequently used in the literature).&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{align}
+\mathcal{L} &amp;= \underset{z}{\sum} q_{\phi}(z) \log \frac{p_{\theta}(x,z)}{q_{\phi}(z)} \\
+&amp;= \mathbb{E_{q_{\phi}(z)}} \log \frac{p_{\theta}(x,z)}{q_{\phi}(z)}
+\end{align} %]]&gt;&lt;/script&gt;
+
+&lt;p&gt;Looking at Eq. 2 and noting that KL divergence is non-negative, you can see that &lt;script type=&quot;math/tex&quot;&gt;\mathcal{L}&lt;/script&gt; must be lower bound for the marginal log likelihood: &lt;script type=&quot;math/tex&quot;&gt;\mathcal{L} \leq \log p_{\theta}(x)&lt;/script&gt;. Variational inference methods focus on the tractable task of maximizing the ELBO instead of maximizing the likelihood directly.&lt;/p&gt;
+
+&lt;h2 id=&quot;expectation-maximization&quot;&gt;Expectation Maximization&lt;/h2&gt;
+
+&lt;p&gt;In the simplest case, when &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(z \lvert x)&lt;/script&gt; is tractable (e.g., GMMs), the expectation maximization (EM) algorithm can be applied. First, parameters &lt;script type=&quot;math/tex&quot;&gt;\theta&lt;/script&gt; are randomly initialized. EM then exploits the tractable posterior by holding &lt;script type=&quot;math/tex&quot;&gt;\theta&lt;/script&gt; fixed and updating &lt;script type=&quot;math/tex&quot;&gt;\phi&lt;/script&gt; by simply setting &lt;script type=&quot;math/tex&quot;&gt;q_{\phi}(z) = p_{\theta}(z \lvert x)&lt;/script&gt; in the &lt;em&gt;E-step&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Notice that since we are holding &lt;script type=&quot;math/tex&quot;&gt;\theta&lt;/script&gt; fixed, the left hand side of Eq. 2 is a constant during this step, and the update to &lt;script type=&quot;math/tex&quot;&gt;\phi&lt;/script&gt; sets the KL term to zero. This means the ELBO term is equal to the log likelihood, which is the best possible optimization step. It’s interesting because, in this interpretation, the EM algorithm does not bother with the ELBO directly in the E-step and instead maximizes it indirectly by minimizing the KL term.&lt;/p&gt;
+
+&lt;p&gt;In the &lt;em&gt;M-step&lt;/em&gt;, &lt;script type=&quot;math/tex&quot;&gt;\phi&lt;/script&gt; is fixed and &lt;script type=&quot;math/tex&quot;&gt;\theta&lt;/script&gt; is updated by maximizing the ELBO. Isolating the terms that depend on &lt;script type=&quot;math/tex&quot;&gt;\theta&lt;/script&gt;&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{align}
+\mathcal{L} &amp;= \mathbb{E_{q_{\phi}(z)}} \log \frac{p_{\theta}(x,z)}{q_{\phi}(z)} \\
+&amp;= \mathbb{E_{q_{\phi}(z)}} \big( \log p_{\theta}(x,z) - \log q_{\phi}(z) \big) \\
+&amp;= \mathbb{E_{q_{\phi}(z)}} \log p_{\theta}(x,z) - \mathbb{E_{q_{\phi}(z)}} \log q_{\phi}(z)
+\end{align} %]]&gt;&lt;/script&gt;
+
+&lt;p&gt;Since the second term does not depend on &lt;script type=&quot;math/tex&quot;&gt;\theta&lt;/script&gt;, we see that the M-step is maximizing the expected joint likelihood of the data&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\theta = \underset{\theta}{\mathrm{argmax}}\ \mathbb{E_{q_{\phi}(z)}} \log p_{\theta}(x,z)&lt;/script&gt;
+
+&lt;p&gt;Although I won’t prove it here, EM has some nice convergence guarantees; it always converges to a local maximum or a saddle point of the marginal likelihood.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;In this post we introduced latent variable models provided some insight on their utility in real-world scenarios. Maximum likelihood training is typically intractable so we derived the variational lower bound (or ELBO) which is maximized instead.&lt;/p&gt;
+
+&lt;p&gt;In the simplest case, when &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(z \lvert x)&lt;/script&gt; is tractable (e.g., GMMs), we showed how the expectation maximization algorithm can be applied.&lt;/p&gt;
+
+&lt;p&gt;However, there are plenty of cases where the posterior &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(z \lvert x)&lt;/script&gt; is not tractable. A more recent approach to solving this problem is to use deep neural networks to jointly learn &lt;script type=&quot;math/tex&quot;&gt;q_{\phi}(z \lvert x)&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(x \lvert z)&lt;/script&gt; with an ELBO loss function, such as in the variational autoencoder. For more on this see my &lt;a href=&quot;http://localhost:4000/vae-series/vae-theory&quot;&gt;post on variational autoencoder theory&lt;/a&gt;, where we will further refine the theory presented here to form the basis for the variational autoencoder.&lt;/p&gt;
+
+&lt;h2 id=&quot;resources&quot;&gt;Resources&lt;/h2&gt;
+
+&lt;p&gt;[1] Volodymyr Kuleshov, Stefano Ermon, &lt;a href=&quot;https://ermongroup.github.io/cs228-notes/learning/latent/&quot;&gt;Learning in latent variable models&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;[2] Ali Ghodsi, &lt;a href=&quot;https://youtu.be/uaaqyVS9-rM&quot;&gt;Lec : Deep Learning, Variational Autoencoder, Oct 12 2017 [Lect 6.2]&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;[3] Daniil Polykovskiy, Alexander Novikov, National Research University Higher School of Economics, Coursera, &lt;a href=&quot;https://www.coursera.org/learn/bayesian-methods-in-machine-learning&quot;&gt;Bayesian Methods for Machine Learning&lt;/a&gt;&lt;/p&gt;</content><author><name>Adam Lineberry</name></author><category term="machine learning" /><summary type="html">Introduction to the general theory of variational inference</summary></entry><entry><title type="html">Variational Autoencoder Code and Experiments</title><link href="http://localhost:4000/vae-series/vae-code-experiments" rel="alternate" type="text/html" title="Variational Autoencoder Code and Experiments" /><published>2019-07-07T00:00:00-06:00</published><updated>2019-07-07T00:00:00-06:00</updated><id>http://localhost:4000/vae-series/vae-experiments</id><content type="html" xml:base="http://localhost:4000/vae-series/vae-code-experiments">&lt;p class=&quot;notice--info&quot;&gt;This is the fourth and final post in my series: &lt;a href=&quot;http://localhost:4000/vae-series/&quot;&gt;From KL Divergence to Variational Autoencoder in PyTorch&lt;/a&gt;. The previous post in the series is &lt;a href=&quot;http://localhost:4000/vae-series/vae-theory&quot;&gt;Variational Autoencoder Theory&lt;/a&gt;.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;In this post we will build and train a variational autoencoder (VAE) in PyTorch, tying everything back to the theory derived in my &lt;a href=&quot;http://localhost:4000/vae-series/vae-theory&quot;&gt;post on VAE theory&lt;/a&gt;. The first half of the post provides discussion on the key points in the implementation. The second half provides the code itself along with some annotations.&lt;/p&gt;
 
 &lt;p&gt;The VAE in this post is trained on the MNIST dataset on a laptop CPU. The images (originally 28x28) are flattened into a 784 dimensional vector for simplicity. The MNIST pixel intensity values, originally continuous &lt;script type=&quot;math/tex&quot;&gt;\in [0,1]&lt;/script&gt; are binarized such that each pixel value is &lt;script type=&quot;math/tex&quot;&gt;\in \{0,1\}&lt;/script&gt;.&lt;/p&gt;
 
@@ -33,7 +223,7 @@ KL[q_{\phi}(z_i \lvert x_i) \lVert p_{\theta}(z_i)] \big]
 
 &lt;p&gt;Since the data is binary in this experiment, we will construct &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(x \lvert z)&lt;/script&gt; to model a multivariate factorized Bernoulli distribution. (Note, the distribution chosen to model the reconstruction is dataset-specific. If you have continuous data then a factorized Gaussian may be more appropriate.) This means that, for each data point, we view the 784 binary pixels values as independent Bernoulli observations. As such, the decoder network will output 784 Bernoulli parameters. The Bernoulli parameter is the probability of success in a binary outcome trial &lt;script type=&quot;math/tex&quot;&gt;p \in [0, 1]&lt;/script&gt; (e.g., the probability of heads when flipping a biased coin).&lt;/p&gt;
 
-&lt;p&gt;Let’s take the &lt;script type=&quot;math/tex&quot;&gt;j^{th}&lt;/script&gt; pixel of the &lt;script type=&quot;math/tex&quot;&gt;i^{th}&lt;/script&gt; image as an example and call it &lt;script type=&quot;math/tex&quot;&gt;x_{ij}&lt;/script&gt;. Since we’re dealing with binary pixel values, &lt;script type=&quot;math/tex&quot;&gt;x_{ij} \in \{0,1\}&lt;/script&gt; can be interpreted as the result of a Bernoulli trial. The model’s output for this pixel will be the Bernoulli parameter corresponding to that pixel and let’s call that specific output &lt;script type=&quot;math/tex&quot;&gt;p_{ij} \in [0,1]&lt;/script&gt;. The likelihood of the data for that pixel &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(x_{ij} \lvert z_i)&lt;/script&gt; is then given by the Bernoulli PMF:&lt;/p&gt;
+&lt;p&gt;Let’s take the &lt;script type=&quot;math/tex&quot;&gt;j^{th}&lt;/script&gt; pixel of the &lt;script type=&quot;math/tex&quot;&gt;i^{th}&lt;/script&gt; image as an example and call it &lt;script type=&quot;math/tex&quot;&gt;x_{ij}&lt;/script&gt;. Since we’re dealing with binary pixel values, &lt;script type=&quot;math/tex&quot;&gt;x_{ij} \in \{0,1\}&lt;/script&gt; can be interpreted as the result of a Bernoulli trial. The model’s output will be the Bernoulli parameter corresponding to that pixel; let’s call that specific output &lt;script type=&quot;math/tex&quot;&gt;p_{ij} \in [0,1]&lt;/script&gt;. The likelihood of that pixel &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(x_{ij} \lvert z_i)&lt;/script&gt; is then given by the Bernoulli PMF:&lt;/p&gt;
 
 &lt;script type=&quot;math/tex; mode=display&quot;&gt;p_{ij}^{x_{ij}}(1-p_{ij})^{1-x_{ij}}&lt;/script&gt;
 
@@ -41,20 +231,20 @@ KL[q_{\phi}(z_i \lvert x_i) \lVert p_{\theta}(z_i)] \big]
 
 &lt;script type=&quot;math/tex; mode=display&quot;&gt;x_{ij} \log p_{ij} + (1-x_{ij}) \log (1-p_{ij})&lt;/script&gt;
 
-&lt;p&gt;This equation may be familiar to some. The negative of it is commonly known as the binary cross entropy and is implemented in PyTorch by &lt;a href=&quot;https://pytorch.org/docs/stable/nn.html?highlight=binary_cross_entropy#torch.nn.BCELoss&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;torch.nn.BCELoss&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;This equation may look familiar. The negative of it is commonly known as binary cross entropy and is implemented in PyTorch by &lt;a href=&quot;https://pytorch.org/docs/stable/nn.html?highlight=binary_cross_entropy#torch.nn.BCELoss&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;torch.nn.BCELoss&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;Now, the log likelihood of the full data point &lt;script type=&quot;math/tex&quot;&gt;x_i&lt;/script&gt; is given by&lt;/p&gt;
 
 &lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
 \begin{align}
-log_{\theta}(x_i \lvert z_i) &amp;= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert z_i) \\
+\log p_{\theta}(x_i \lvert z_i) &amp;= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert z_i) \\
 &amp;= \sum_{j=1}^{784} \log p_{\theta}(x_{ij} \lvert z_i) \\
 &amp;= \sum_{j=1}^{784} \bigg[ x_{ij} \log p_{ij} + (1-x_{ij}) \log (1-p_{ij}) \bigg]
 \end{align} %]]&gt;&lt;/script&gt;
 
-&lt;p&gt;In PyTorch the final expression is implemented by &lt;a href=&quot;https://pytorch.org/docs/stable/nn.html#binary-cross-entropy&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;torch.nn.functional.binary_cross_entropy&lt;/code&gt;&lt;/a&gt; with &lt;code class=&quot;highlighter-rouge&quot;&gt;reduction='sum'&lt;/code&gt;. Since we are training in minibatches, we want the sum of log probabilities for all pixels in that minibatch. This is accomplished by simply passing full batches through the same function call. You can think of the operation performed as first summing the 784 values for each datapoint. Then, in a second aggregation step, it will sum over the batch.&lt;/p&gt;
+&lt;p&gt;In PyTorch the final expression is implemented by &lt;a href=&quot;https://pytorch.org/docs/stable/nn.html#binary-cross-entropy&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;torch.nn.functional.binary_cross_entropy&lt;/code&gt;&lt;/a&gt; with &lt;code class=&quot;highlighter-rouge&quot;&gt;reduction='sum'&lt;/code&gt;. Since we are training in minibatches, we want the sum of log probabilities for all pixels in that minibatch. This is accomplished by simply passing full batches through the same function call. You can think of the operation performed as first summing the 784 values for each datapoint and then summing over data points in the batch. In reality, a &lt;code class=&quot;highlighter-rouge&quot;&gt;(batch_size, 784)&lt;/code&gt; size tensor of cross entropy values will be computed and then summed over all axes.&lt;/p&gt;
 
-&lt;p&gt;The expectation of the log likelihood over &lt;script type=&quot;math/tex&quot;&gt;q_{\phi}(z \lvert x)&lt;/script&gt; is satisfied by simply sampling one point from &lt;script type=&quot;math/tex&quot;&gt;q_{\phi}(z \lvert x)&lt;/script&gt; and passing it through the decoder. Note that there are no additional complexities here; this is the same basic forward pass. As discussed in the previous post, this is the Monte Carlo approximation of the expected value of a function.&lt;/p&gt;
+&lt;p&gt;The expectation of the log likelihood over &lt;script type=&quot;math/tex&quot;&gt;q_{\phi}(z \lvert x)&lt;/script&gt; is satisfied by simply sampling one point from &lt;script type=&quot;math/tex&quot;&gt;q_{\phi}(z \lvert x)&lt;/script&gt; and passing it through the decoder. Note that there are no additional complexities here; this is a basic forward pass. As discussed in the previous post, this is the Monte Carlo approximation of the expected value of a function.&lt;/p&gt;
 
 &lt;h3 id=&quot;second-term-kl-divergence-regularization&quot;&gt;Second term (KL divergence, regularization)&lt;/h3&gt;
 
@@ -68,14 +258,14 @@ log_{\theta}(x_i \lvert z_i) &amp;= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lv
 
 &lt;p&gt;Where &lt;script type=&quot;math/tex&quot;&gt;J&lt;/script&gt; is the size of the latent space (number of dimensions), and &lt;script type=&quot;math/tex&quot;&gt;\mu&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;\sigma^2&lt;/script&gt; are the mean and variance vectors output from the probabilistic encoder.&lt;/p&gt;
 
-&lt;p&gt;In order to compute this, the forward pass of the network must also return mean and variance vectors output from the encoder, not just the reconstruction portion. In other words, it must return the outputs from both the encoder and the decoder.&lt;/p&gt;
+&lt;p&gt;In order to compute this, the forward pass of the network must also return mean and variance vectors output from the encoder, not just the reconstruction portion. In other words, the full model must return the outputs from both the encoder and the decoder.&lt;/p&gt;
 
 &lt;p&gt;The KL term can be computed across a minibatch with the following:&lt;/p&gt;
 
 &lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.5&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;torch&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;logvar&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mu&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;pow&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;logvar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;exp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;Where &lt;code class=&quot;highlighter-rouge&quot;&gt;mu&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;logvar&lt;/code&gt; are tensors of means and log variances across the minibatch, respectively. Both of these tensors will have shape &lt;code class=&quot;highlighter-rouge&quot;&gt;(batch_size, latent_space_size)&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Where &lt;code class=&quot;highlighter-rouge&quot;&gt;mu&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;logvar&lt;/code&gt; are tensors of means and log variances across the minibatch, respectively. Both of these tensors will have size &lt;code class=&quot;highlighter-rouge&quot;&gt;(batch_size, latent_space_size)&lt;/code&gt;.&lt;/p&gt;
 
 &lt;h3 id=&quot;putting-the-terms-together&quot;&gt;Putting the terms together&lt;/h3&gt;
 
@@ -83,7 +273,10 @@ log_{\theta}(x_i \lvert z_i) &amp;= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lv
 
 &lt;h2 id=&quot;sampling-from-the-encoder&quot;&gt;Sampling from the encoder&lt;/h2&gt;
 
-&lt;p&gt;A key step in the flow of the VAE is sampling a data point from the encoder &lt;script type=&quot;math/tex&quot;&gt;q_{\phi}(z \lvert x)&lt;/script&gt;. The reparameterization trick is used to perform this sampling without introducing a discontinuity in the network (as discussed in the previous post).&lt;/p&gt;
+&lt;p&gt;A key step in the flow of the VAE is sampling a data point from the encoder &lt;script type=&quot;math/tex&quot;&gt;q_{\phi}(z_i \lvert x_i)&lt;/script&gt;. The reparameterization trick is used to perform this sampling without introducing a discontinuity in the network (as discussed in the previous post).&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;z_i = g_{\phi}(x_i, \epsilon_i) = \mu_{\phi}(x_i) + diag(\sigma_{\phi}(x_i)) \cdot \epsilon_i \\
+\epsilon_i \sim \mathcal{N}(0, I)&lt;/script&gt;
 
 &lt;p&gt;In the forward pass, the vector of means and log variances are collected from the encoder. These vectors are used to generate a data sample as such&lt;/p&gt;
 
@@ -93,18 +286,15 @@ log_{\theta}(x_i \lvert z_i) &amp;= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lv
   &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mu&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;eps&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;This code above implements&lt;/p&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;z_i = g_{\phi}(x_i, \epsilon) = \mu_{\phi}(x) + diag(s_{\phi}(x)) \cdot \epsilon \\
-\epsilon \sim \mathcal{N}(0, I)&lt;/script&gt;
-
 &lt;h2 id=&quot;experiment-results&quot;&gt;Experiment results&lt;/h2&gt;
 
 &lt;h3 id=&quot;data-generation&quot;&gt;Data generation&lt;/h3&gt;
 
 &lt;p&gt;At various points during training, I sampled a grid of points from the latent space. The points are linearly spaced coordinates on the unit square, transformed through the inverse Gaussian CDF. This results in a grid of points with evenly spaced quantiles of the Gaussian. In plain English (sort of), this means slicing the Gaussian into equal sized chunks.&lt;/p&gt;
 
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;grid_x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;norm&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ppf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;linspace&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.05&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.95&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;scipy.stats&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;norm&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;
+&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;grid_x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;norm&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ppf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;linspace&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.05&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.95&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
 &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;grid_y&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;norm&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ppf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;linspace&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.05&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.95&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
@@ -117,8 +307,11 @@ log_{\theta}(x_i \lvert z_i) &amp;= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lv
 &lt;p&gt;Animation for just the early stages of training:
 &lt;img src=&quot;http://localhost:4000/images/vae/datagen_tracking_early.gif&quot; alt=&quot;&quot; width=&quot;500&quot; class=&quot;align-center&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;The final state of the learned manifold and data generation after training has completed:
+&lt;p&gt;The final state of the learned manifold after training has completed:
 &lt;img src=&quot;http://localhost:4000/images/vae/datagen_final.png&quot; width=&quot;500&quot; class=&quot;align-center&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;As you can see, there are regions dedicated to individual digits with smooth transitions in between. I tried hand drawing the boundaries between digits to aid the visualization:
+&lt;img src=&quot;http://localhost:4000/images/vae/datagen_final_handdrawn_partitions.png&quot; width=&quot;500&quot; class=&quot;align-center&quot; /&gt;&lt;/p&gt;
 
 &lt;h3 id=&quot;data-reconstruction&quot;&gt;Data reconstruction&lt;/h3&gt;
 
@@ -132,7 +325,7 @@ log_{\theta}(x_i \lvert z_i) &amp;= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lv
 
 &lt;h3 id=&quot;anomaly-detection&quot;&gt;Anomaly detection&lt;/h3&gt;
 
-&lt;p&gt;Anomalous data can be detected by leveraging the probabilistic nature of the VAE. One (of many) ways to detect anomalies is to measure the KL divergence between the encoder distribution &lt;script type=&quot;math/tex&quot;&gt;q_{\phi}(z \lvert x)&lt;/script&gt; and the prior &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(z)&lt;/script&gt; and compare it to the average across the training (or test) set.&lt;/p&gt;
+&lt;p&gt;Anomalous data can be detected by leveraging the probabilistic nature of the VAE. One way to detect anomalies is to measure the KL divergence between the encoder distribution &lt;script type=&quot;math/tex&quot;&gt;q_{\phi}(z_i \lvert x_i)&lt;/script&gt; and the prior &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(z)&lt;/script&gt; and compare it to the average across the training (or test) set.&lt;/p&gt;
 
 &lt;p&gt;I computed this KL divergence for every point in the training set and plotted the resulting distribution:&lt;/p&gt;
 
@@ -146,7 +339,7 @@ log_{\theta}(x_i \lvert z_i) &amp;= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lv
 
 &lt;h2 id=&quot;pytorch-code&quot;&gt;PyTorch Code&lt;/h2&gt;
 
-&lt;p&gt;The data loading, data transformation, model architecture, loss function, and training loop are presented in this section. Detailed discussion on the key points of implementation are discussed above, but additional code annotation is provided for clarity. For the full code including visualization generation and experiment execution, please see &lt;a href=&quot;https://github.com/acetherace/alcore/tree/master/notebooks/VAE.ipynb&quot;&gt;the notebook&lt;/a&gt; on Github.&lt;/p&gt;
+&lt;p&gt;The data loading, data transformation, model architecture, loss function, and training loop are presented in this section. Detailed discussion on the key points of implementation are discussed above, but additional code annotation is provided for clarity. For the full code including visualization generation and experiment execution, please see &lt;a href=&quot;https://github.com/acetherace/alcore/tree/master/notebooks/VAE.ipynb&quot;&gt;this notebook&lt;/a&gt; on Github.&lt;/p&gt;
 
 &lt;h3 id=&quot;imports-and-helpers&quot;&gt;Imports and Helpers&lt;/h3&gt;
 
@@ -172,9 +365,12 @@ log_{\theta}(x_i \lvert z_i) &amp;= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lv
 
 &lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;batch_size&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;128&lt;/span&gt;
 &lt;span class=&quot;n&quot;&gt;epochs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;seed&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;seed&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;199&lt;/span&gt;
 &lt;span class=&quot;n&quot;&gt;log_interval&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;
 &lt;span class=&quot;n&quot;&gt;device&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'cpu'&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;torch&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;manual_seed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;seed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;seed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;seed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;h3 id=&quot;load-and-prep-data&quot;&gt;Load and Prep Data&lt;/h3&gt;
@@ -221,54 +417,111 @@ log_{\theta}(x_i \lvert z_i) &amp;= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lv
 
 &lt;h3 id=&quot;define-model-and-training-functions&quot;&gt;Define Model and Training Functions&lt;/h3&gt;
 
-&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;VAE&lt;/code&gt; class fully defines the model architecture. It allows for a variable number of hidden layers and hidden layer sizes. It uses the ReLU activation function at each hidden layer. It separates the encoder and decoder into their own methods. It also has a method to perform the sampling step via the reparameterization trick.&lt;/p&gt;
+&lt;p&gt;The encoder and decoder modules are defined separately as &lt;code class=&quot;highlighter-rouge&quot;&gt;VAEEncoder&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;BernoulliVAEDecoder&lt;/code&gt;, respectively.  The &lt;code class=&quot;highlighter-rouge&quot;&gt;BernoulliVAE&lt;/code&gt; class combines them to form the full model. It allows for a variable number of hidden layers and hidden layer sizes in both the encoder and decoder. It uses the ReLU activation function at each hidden layer.&lt;/p&gt;
 
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;VAE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Module&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;784&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;encoder_szs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;400&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt;
-                 &lt;span class=&quot;n&quot;&gt;decoder_szs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;super&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;VAE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;VAEEncoder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Module&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;
+    Standard encoder module for variational autoencoders with tabular input and
+    factorized Gaussian posterior.
+    &quot;&quot;&quot;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hidden_sizes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;latent_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;
+        Args:
+            data_size (int): Dimensionality of the input data.
+            hidden_sizes (list[int]): Sizes of hidden layers (not including the
+                input layer or the latent layer).
+            latent_size (int): Size of the latent space.
+        &quot;&quot;&quot;&lt;/span&gt;
+        &lt;span class=&quot;nb&quot;&gt;super&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
 
-        &lt;span class=&quot;c&quot;&gt;# if decoder_szs not specified, assume symmetry&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;decoder_szs&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;is&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;decoder_szs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;encoder_szs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[::&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data_size&lt;/span&gt;
 
         &lt;span class=&quot;c&quot;&gt;# construct the encoder&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;encoder_szs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;encoder_szs&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;encoder_szs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hidden_sizes&lt;/span&gt;
         &lt;span class=&quot;n&quot;&gt;encoder_layers&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;in_sz&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out_sz&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;zip&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder_szs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[:&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;encoder_szs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]):&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;in_sz&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;out_sz&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;zip&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder_szs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[:&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;encoder_szs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:]):&lt;/span&gt;
             &lt;span class=&quot;n&quot;&gt;encoder_layers&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Linear&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;in_sz&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out_sz&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
             &lt;span class=&quot;n&quot;&gt;encoder_layers&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ReLU&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
         &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Sequential&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder_layers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder_mu&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Linear&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder_szs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;encoder_szs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
-        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder_logvar&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Linear&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder_szs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;encoder_szs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
-
-        &lt;span class=&quot;c&quot;&gt;# construct the decoder&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;decoder_layers&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;in_sz&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out_sz&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;zip&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;decoder_szs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[:&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;decoder_szs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:]):&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;decoder_layers&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Linear&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;in_sz&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out_sz&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;decoder_layers&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ReLU&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;decoder_layers&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Linear&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;decoder_szs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;decoder_layers&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Sigmoid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
-        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;decoder&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Sequential&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;decoder_layers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data_size&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data_size&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder_mu&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Linear&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder_szs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;latent_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder_logvar&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Linear&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder_szs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;latent_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 
     &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;encode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;h&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder_mu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;h&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder_logvar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;h&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;gaussian_param_projection&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder_mu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder_logvar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 
     &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;reparameterize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;logvar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
         &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;torch&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;exp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.5&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;logvar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
         &lt;span class=&quot;n&quot;&gt;eps&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;torch&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;randn_like&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
         &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mu&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;eps&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;
 
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;forward&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;mu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;logvar&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gaussian_param_projection&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;z&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reparameterize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;logvar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;logvar&lt;/span&gt;
+
+
+&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;BernoulliVAEDecoder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Module&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;
+    VAE decoder module that models a factorized multivariate Bernoulli
+    distribution with a feed-forward neural net.
+    &quot;&quot;&quot;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hidden_sizes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;latent_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;
+        Args:
+            data_size (int): Dimensionality of the input data.
+            hidden_sizes (list[int]): Sizes of hidden layers (not including the
+                input layer or the latent layer).
+            latent_size (int): Size of the latent space.
+        &quot;&quot;&quot;&lt;/span&gt;
+        &lt;span class=&quot;nb&quot;&gt;super&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+
+        &lt;span class=&quot;c&quot;&gt;# construct the decoder&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;hidden_sizes&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;latent_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hidden_sizes&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;decoder_layers&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;in_sz&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;out_sz&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;zip&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hidden_sizes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[:&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hidden_sizes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:]):&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;decoder_layers&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Linear&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;in_sz&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out_sz&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;decoder_layers&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ReLU&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;decoder_layers&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Linear&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hidden_sizes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;decoder_layers&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Sigmoid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;decoder&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Sequential&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;decoder_layers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;forward&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;decoder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+
+&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;BernoulliVAE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Module&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;
+    VAE module that combines a `VAEEncoder` and a `BernoulliVAEDecoder` resulting
+    in full VAE.
+    &quot;&quot;&quot;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;encoder_szs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;latent_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;decoder_szs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;nb&quot;&gt;super&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+
+        &lt;span class=&quot;c&quot;&gt;# if decoder_szs not specified, assume symmetry&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;decoder_szs&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;is&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;decoder_szs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;encoder_szs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[::&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+
+        &lt;span class=&quot;c&quot;&gt;# construct the encoder&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;VAEEncoder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hidden_sizes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder_szs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                                  &lt;span class=&quot;n&quot;&gt;latent_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;latent_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+        &lt;span class=&quot;c&quot;&gt;# construct the decoder&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;decoder&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BernoulliVAEDecoder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;latent_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;latent_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                                           &lt;span class=&quot;n&quot;&gt;hidden_sizes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;decoder_szs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data_size&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data_size&lt;/span&gt;
+
     &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;decode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
         &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;decoder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 
     &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;forward&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;mu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;logvar&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;view&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;z&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reparameterize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;logvar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;decode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;logvar&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;logvar&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;p_x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;decoder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;p_x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;logvar&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;The loss function is discussed in detail above.&lt;/p&gt;
@@ -294,6 +547,7 @@ log_{\theta}(x_i \lvert z_i) &amp;= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lv
     &lt;span class=&quot;n&quot;&gt;pb&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;progress_bar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;train_loader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;parent&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
     &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;batch_idx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;enumerate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
         &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;to&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;device&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;view&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;784&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
         &lt;span class=&quot;n&quot;&gt;optimizer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;zero_grad&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
         &lt;span class=&quot;n&quot;&gt;recon_batch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;logvar&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
         &lt;span class=&quot;n&quot;&gt;loss&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loss_function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;recon_batch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;logvar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
@@ -316,6 +570,7 @@ log_{\theta}(x_i \lvert z_i) &amp;= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lv
         &lt;span class=&quot;n&quot;&gt;pb&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;progress_bar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;test_loader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;parent&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
         &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;test_loader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
             &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;to&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;device&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;view&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;784&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
             &lt;span class=&quot;n&quot;&gt;recon_batch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;logvar&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
             &lt;span class=&quot;n&quot;&gt;test_loss&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loss_function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;recon_batch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;logvar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;item&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
 
@@ -330,8 +585,7 @@ log_{\theta}(x_i \lvert z_i) &amp;= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lv
     &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;epoch&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
         &lt;span class=&quot;n&quot;&gt;trn_loss&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;train&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;epoch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;figure_interval&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;viz_helper&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;viz_helper&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
         &lt;span class=&quot;n&quot;&gt;tst_loss&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;epoch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;mb&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'epoch {epoch}, train loss: {round(trn_loss,6)}, test loss: {round(tst_loss, 6)}'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;                                                                  
-
+        &lt;span class=&quot;n&quot;&gt;mb&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'epoch {epoch}, train loss: {round(trn_loss,6)}, test loss: {round(tst_loss, 6)}'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;h3 id=&quot;vae-with-20-d-latent-space&quot;&gt;VAE with 20-d Latent Space&lt;/h3&gt;
@@ -341,24 +595,29 @@ log_{\theta}(x_i \lvert z_i) &amp;= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lv
 &lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;viz_helper_20d&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;VAEVizHelper&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;recon_base_imgs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;datagen_tracking&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;model&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;VAE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder_szs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;400&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;to&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;device&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;model&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BernoulliVAE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;784&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;encoder_szs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;400&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;latent_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                     &lt;span class=&quot;n&quot;&gt;decoder_szs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;400&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;to&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;device&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;span class=&quot;n&quot;&gt;optimizer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;optim&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Adam&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parameters&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lr&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;1e-3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;
 
-&lt;span class=&quot;c&quot;&gt;# VAE(&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;#   (encoder): Sequential(&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;#     (0): Linear(in_features=784, out_features=400, bias=True)&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;#     (1): ReLU()&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# BernoulliVAE(&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#   (encoder): VAEEncoder(&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#     (encoder): Sequential(&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#       (0): Linear(in_features=784, out_features=400, bias=True)&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#       (1): ReLU()&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#     )&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#     (encoder_mu): Linear(in_features=400, out_features=20, bias=True)&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#     (encoder_logvar): Linear(in_features=400, out_features=20, bias=True)&lt;/span&gt;
 &lt;span class=&quot;c&quot;&gt;#   )&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;#   (encoder_mu): Linear(in_features=400, out_features=20, bias=True)&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;#   (encoder_logvar): Linear(in_features=400, out_features=20, bias=True)&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;#   (decoder): Sequential(&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;#     (0): Linear(in_features=20, out_features=400, bias=True)&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;#     (1): ReLU()&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;#     (2): Linear(in_features=400, out_features=784, bias=True)&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;#     (3): Sigmoid()&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#   (decoder): BernoulliVAEDecoder(&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#     (decoder): Sequential(&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#       (0): Linear(in_features=20, out_features=400, bias=True)&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#       (1): ReLU()&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#       (2): Linear(in_features=400, out_features=784, bias=True)&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#       (3): Sigmoid()&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#     )&lt;/span&gt;
 &lt;span class=&quot;c&quot;&gt;#   )&lt;/span&gt;
 &lt;span class=&quot;c&quot;&gt;# )&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
@@ -371,28 +630,33 @@ log_{\theta}(x_i \lvert z_i) &amp;= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lv
 
 &lt;p&gt;Train a VAE with 2 dimensional latent space. This model will be used to generate the visualizations of data generation across the latent manifold. It is much easier to visualize a 2-d manifold.&lt;/p&gt;
 
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;model&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;VAE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder_szs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;400&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;150&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;to&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;device&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;model&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BernoulliVAE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;784&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;encoder_szs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;400&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;150&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;latent_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                     &lt;span class=&quot;n&quot;&gt;decoder_szs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;150&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;400&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;to&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;device&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;span class=&quot;n&quot;&gt;optimizer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;optim&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Adam&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parameters&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lr&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;1e-3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;
 
-&lt;span class=&quot;c&quot;&gt;# VAE(&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;#   (encoder): Sequential(&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;#     (0): Linear(in_features=784, out_features=400, bias=True)&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;#     (1): ReLU()&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;#     (2): Linear(in_features=400, out_features=150, bias=True)&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;#     (3): ReLU()&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# BernoulliVAE(&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#   (encoder): VAEEncoder(&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#     (encoder): Sequential(&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#       (0): Linear(in_features=784, out_features=400, bias=True)&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#       (1): ReLU()&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#       (2): Linear(in_features=400, out_features=150, bias=True)&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#       (3): ReLU()&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#     )&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#     (encoder_mu): Linear(in_features=150, out_features=2, bias=True)&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#     (encoder_logvar): Linear(in_features=150, out_features=2, bias=True)&lt;/span&gt;
 &lt;span class=&quot;c&quot;&gt;#   )&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;#   (encoder_mu): Linear(in_features=150, out_features=2, bias=True)&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;#   (encoder_logvar): Linear(in_features=150, out_features=2, bias=True)&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;#   (decoder): Sequential(&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;#     (0): Linear(in_features=2, out_features=150, bias=True)&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;#     (1): ReLU()&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;#     (2): Linear(in_features=150, out_features=400, bias=True)&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;#     (3): ReLU()&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;#     (4): Linear(in_features=400, out_features=784, bias=True)&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;#     (5): Sigmoid()&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#   (decoder): BernoulliVAEDecoder(&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#     (decoder): Sequential(&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#       (0): Linear(in_features=2, out_features=150, bias=True)&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#       (1): ReLU()&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#       (2): Linear(in_features=150, out_features=400, bias=True)&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#       (3): ReLU()&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#       (4): Linear(in_features=400, out_features=784, bias=True)&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#       (5): Sigmoid()&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#     )&lt;/span&gt;
 &lt;span class=&quot;c&quot;&gt;#   )&lt;/span&gt;
 &lt;span class=&quot;c&quot;&gt;# )&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
@@ -401,23 +665,32 @@ log_{\theta}(x_i \lvert z_i) &amp;= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lv
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 &lt;p&gt;Total time: 02:50 &amp;lt;p&amp;gt;epoch 1, train loss: 164.487584, test loss: 159.490324&amp;lt;p&amp;gt;epoch 2, train loss: 155.384058, test loss: 152.910404&amp;lt;p&amp;gt;epoch 3, train loss: 150.389809, test loss: 149.377793&amp;lt;p&amp;gt;epoch 4, train loss: 147.043944, test loss: 146.478713&amp;lt;p&amp;gt;epoch 5, train loss: 144.72857, test loss: 144.263316&amp;lt;p&amp;gt;epoch 6, train loss: 142.759334, test loss: 143.399154&amp;lt;p&amp;gt;epoch 7, train loss: 141.358421, test loss: 141.273972&amp;lt;p&amp;gt;epoch 8, train loss: 140.11891, test loss: 141.396691&amp;lt;p&amp;gt;epoch 9, train loss: 139.222043, test loss: 140.119026&amp;lt;p&amp;gt;epoch 10, train loss: 138.443796, test loss: 140.24413&lt;/p&gt;
 
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;In this post we drew the final connections between the abstract theory of variational autoencoders and a concrete implementation in PyTorch. By sampling a grid from the latent space and using the probabilistic decoder to map these samples into synthetic digits, we saw how the model has learned a highly structured latent space with smooth transitions between digit classes. We also discussed a simple example demonstrating how the VAE can be used for anomaly detection.&lt;/p&gt;
+
 &lt;h2 id=&quot;resources&quot;&gt;Resources&lt;/h2&gt;
 
-&lt;p&gt;[1] PyTorch, &lt;a href=&quot;https://github.com/pytorch/examples/tree/master/vae&quot;&gt;Basic VAE Example&lt;/a&gt;&lt;/p&gt;</content><author><name>Adam Lineberry</name></author><category term="machine learning" /><summary type="html">Final connections between theory and lines of code</summary></entry><entry><title type="html">[DRAFT] Variational Autoencoder Theory</title><link href="http://localhost:4000/vae-series/vae-theory" rel="alternate" type="text/html" title="[DRAFT] Variational Autoencoder Theory" /><published>2019-05-28T00:00:00-06:00</published><updated>2019-05-28T00:00:00-06:00</updated><id>http://localhost:4000/vae-series/vae-theory</id><content type="html" xml:base="http://localhost:4000/vae-series/vae-theory">&lt;p&gt;Since the seminal paper was released in 2015 the Variational Autoencoder (VAE) has become extremely popular. It was one of the first model architectures in the mainstream to establish a strong connection between deep learning and Bayesian statistics. It’s also just really cool. You can synthesize new data with it and even interpret the latent dimensions it learns. A VAE trained on image data results in the ability to create spectacular visualizations of the latent factors it learns and the realistic images it can generate. In the world of data science it’s an excellent bridge between statistics and computer science. It’s fun to think about and tinker with, and it makes a great sandbox for curious minds to learn and build intuition about deep learning and statistics.&lt;/p&gt;
+&lt;p&gt;[1] PyTorch, &lt;a href=&quot;https://github.com/pytorch/examples/tree/master/vae&quot;&gt;Basic VAE Example&lt;/a&gt;&lt;/p&gt;</content><author><name>Adam Lineberry</name></author><category term="machine learning" /><summary type="html">Final connections between theory and lines of code</summary></entry><entry><title type="html">Variational Autoencoder Theory</title><link href="http://localhost:4000/vae-series/vae-theory" rel="alternate" type="text/html" title="Variational Autoencoder Theory" /><published>2019-07-07T00:00:00-06:00</published><updated>2019-07-07T00:00:00-06:00</updated><id>http://localhost:4000/vae-series/vae-theory</id><content type="html" xml:base="http://localhost:4000/vae-series/vae-theory">&lt;p class=&quot;notice--info&quot;&gt;This is the third post in my series: &lt;a href=&quot;http://localhost:4000/vae-series/&quot;&gt;From KL Divergence to Variational Autoencoder in PyTorch&lt;/a&gt;. The previous post in the series is &lt;a href=&quot;http://localhost:4000/vae-series/variational-inference&quot;&gt;Latent Variable Models, Expectation Maximization, and Variational Inference&lt;/a&gt; and the next post is &lt;a href=&quot;http://localhost:4000/vae-series/vae-code-experiments&quot;&gt;Variational Autoencoder Code and Experiments&lt;/a&gt;.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;The Variational Autoencoder has taken the machine learning community by storm since Kingma and Welling’s seminal paper was released in 2013&lt;sup&gt;1&lt;/sup&gt;. It was one of the first model architectures in the mainstream to establish a strong connection between deep learning and Bayesian statistics. Quite frankly, it’s also just really cool. A VAE trained on image data results in the ability to create spectacular visualizations of the latent factors it learns and the realistic images it can generate. In the world of data science it’s an excellent bridge between statistics and computer science. It’s interesting to think about and tinker with, and it makes a great sandbox to learn and build intuition about deep learning and statistics.&lt;/p&gt;
 
 &lt;figure class=&quot;half&quot; style=&quot;display:flex&quot;&gt;
   &lt;img src=&quot;http://localhost:4000/images/vae/datagen_final.png&quot; height=&quot;100&quot; /&gt;
   &lt;img src=&quot;http://localhost:4000/images/vae/frey_face.png&quot; height=&quot;100&quot; /&gt;
-  &lt;figcaption&gt;(left) Synthesized digits from MNIST sampled from a grid on the learned latent manifold. Notice the smooth transitions between digits. (right) Synthesized faces sampled from a grid on the manifold of a VAE trained on Frey Face dataset&lt;sup&gt;1&lt;/sup&gt;. Notice that the VAE has learned interpretable latent factors: left-to-right adjusts head orientation, top-to-bottom adjusts level of frowning or smiling. &lt;/figcaption&gt;
+  &lt;figcaption&gt;(left) Synthesized digits from MNIST sampled from a grid on the learned latent manifold. Notice the smooth transitions between digits. (right) Synthesized faces sampled from a grid on the manifold of a VAE trained on the Frey Face dataset&lt;sup&gt;1&lt;/sup&gt;. Notice that the VAE has learned interpretable latent factors: left-to-right adjusts head orientation, top-to-bottom adjusts level of frowning or smiling. &lt;/figcaption&gt;
 &lt;/figure&gt;
 
-&lt;p&gt;It isn’t just a playground though; there are extremely valuable use cases for the VAE on real world problems. It can be used for representation learning/feature engineering/dimensionality reduction to improve performance on downstream tasks such as classification models or recommender systems. You can also leverage its probabilistic nature to perform anomaly detection. Its data generation capability lends itself to assist in the training of reinforcement learning systems.&lt;/p&gt;
+&lt;p&gt;It isn’t just a playground though; there are extremely valuable applications for the VAE on real world problems. It can be used for representation learning/feature engineering/dimensionality reduction to improve performance on downstream tasks such as classification models or recommender systems. You can also leverage its probabilistic nature to perform anomaly detection. Its data generation capability also lends itself to assist in the training of reinforcement learning systems.&lt;/p&gt;
 
-&lt;p&gt;The VAE seems very similar to other autoencoders. At a high level, an autoencoder is a deep neural network that is trained to reconstruct its own input. There are many variations of this fundamental idea that accomplish different end tasks, such as the vanilla autoencoder, the denoising autoencoder, the sparse autoencoder, and yes, the variational autoencoder. But the VAE stands apart from the rest in that it is a fully probabilistic model.&lt;/p&gt;
+&lt;p&gt;The VAE seems very similar to other autoencoders. At a high level, an autoencoder is a deep neural network that is trained to reconstruct its own input. There are many variations of this fundamental idea that accomplish different end tasks, such as the vanilla autoencoder, the denoising autoencoder, and the sparse autoencoder. But the VAE stands apart from the rest in that it is a fully probabilistic model.&lt;/p&gt;
 
 &lt;p&gt;In this post we are going to introduce the theory of the VAE by building on concepts introduced in the previous post, such as variational inference and maximizing the Evidence Lower Bound (ELBO).&lt;/p&gt;
 
-&lt;p&gt;Table of contents:&lt;/p&gt;
+&lt;div class=&quot;notice&quot;&gt;
+&lt;p&gt;&lt;strong&gt;Table of contents:&lt;/strong&gt;&lt;/p&gt;
 &lt;ol&gt;
   &lt;li&gt;Derivation of the VAE objective function&lt;/li&gt;
   &lt;li&gt;Intuition behind the VAE objective function&lt;/li&gt;
@@ -425,6 +698,7 @@ log_{\theta}(x_i \lvert z_i) &amp;= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lv
   &lt;li&gt;Optimization&lt;/li&gt;
   &lt;li&gt;Practical uses of the VAE&lt;/li&gt;
 &lt;/ol&gt;
+&lt;/div&gt;
 
 &lt;h2 id=&quot;derivation-of-the-vae-objective-function&quot;&gt;Derivation of the VAE objective function&lt;/h2&gt;
 
@@ -501,11 +775,11 @@ KL[q_{\phi}(z \lvert x) \lVert p_{\theta}(z)]&lt;/script&gt;
 
 &lt;h2 id=&quot;optimization&quot;&gt;Optimization&lt;/h2&gt;
 
-&lt;p&gt;Let’s first describe the overall flow and inner workings of this neural network. Data points &lt;script type=&quot;math/tex&quot;&gt;x_i&lt;/script&gt; are fed into the encoder which produces vectors of means and variances defining a factorized Gaussian distribution at the center of the network. A latent variable &lt;script type=&quot;math/tex&quot;&gt;z_i&lt;/script&gt; is then sampled from &lt;script type=&quot;math/tex&quot;&gt;q_{\phi}(z \lvert x_i)&lt;/script&gt; and fed into the decoder. The decoder outputs another set of parameters defining &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(x_i \lvert z_i)&lt;/script&gt; (as discussed previously, these parameters could be means and variances of another Gaussian, or the parameters of a multivariate Bernoulli). During training, the likelihood of the data point &lt;script type=&quot;math/tex&quot;&gt;x_i&lt;/script&gt; under &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(x_i \lvert z_i)&lt;/script&gt; can then be calculated using the Bernoulli PMF or Gaussian PDF, and maximized via gradient descent.&lt;/p&gt;
+&lt;p&gt;Let’s first describe the overall flow and inner workings of this neural network. Data points &lt;script type=&quot;math/tex&quot;&gt;x_i&lt;/script&gt; are fed into the encoder which produces vectors of means and variances defining a factorized Gaussian distribution at the center of the network. A latent variable &lt;script type=&quot;math/tex&quot;&gt;z_i&lt;/script&gt; is then sampled from &lt;script type=&quot;math/tex&quot;&gt;q_{\phi}(z_i \lvert x_i)&lt;/script&gt; and fed into the decoder. The decoder outputs another set of parameters defining &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(x_i \lvert z_i)&lt;/script&gt; (as discussed previously, these parameters could be means and variances of another Gaussian, or the parameters of a multivariate Bernoulli). During training, the likelihood of the data point &lt;script type=&quot;math/tex&quot;&gt;x_i&lt;/script&gt; under &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(x_i \lvert z_i)&lt;/script&gt; can then be calculated using the Bernoulli PMF or Gaussian PDF, and maximized via gradient descent.&lt;/p&gt;
 
 &lt;p&gt;In addition to maximizing the data likelihood, which corresponds to the first term in the objective function, the KL divergence between the encoder distribution &lt;script type=&quot;math/tex&quot;&gt;q_{\phi}(z \lvert x)&lt;/script&gt; and the prior &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(z)&lt;/script&gt; is also minimized. Thankfully, since we have chosen Gaussians for both the prior and the approximate posterior &lt;script type=&quot;math/tex&quot;&gt;q_{\phi}&lt;/script&gt;, the KL divergence term has a closed form solution which we can plug into our favorite deep learning framework.&lt;/p&gt;
 
-&lt;p&gt;Performing gradient descent on the first term also presents additional complications. For one, computing the actual expectation over &lt;script type=&quot;math/tex&quot;&gt;q_{\phi}&lt;/script&gt; requires an intractable integral. This expectation can be approximated by sampling. The Monte Carlo approximation states that the expectation of a function can be approximated by the average value of the function across &lt;script type=&quot;math/tex&quot;&gt;N_s&lt;/script&gt; samples from the distribution:&lt;/p&gt;
+&lt;p&gt;Performing gradient descent on the first term also presents additional complications. For one, computing the actual expectation over &lt;script type=&quot;math/tex&quot;&gt;q_{\phi}&lt;/script&gt; requires an intractable integral (i.e., computing &lt;script type=&quot;math/tex&quot;&gt;\log p_{\theta}(x \lvert z)&lt;/script&gt; for all possible values of &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt;). Instead, this expectation is approximated by Monte Carlo sampling. The Monte Carlo approximation states that the expectation of a function can be approximated by the average value of the function across &lt;script type=&quot;math/tex&quot;&gt;N_s&lt;/script&gt; samples from the distribution:&lt;/p&gt;
 
 &lt;script type=&quot;math/tex; mode=display&quot;&gt;\mathbb{E_{q_{\phi}(z \lvert x)}} \log p_{\theta}(x \lvert z) \approx
 \frac{1}{N_s}\sum_{s=1}^{N_s} \log p_{\theta}(x \lvert z_s)&lt;/script&gt;
@@ -519,12 +793,12 @@ KL[q_{\phi}(z \lvert x) \lVert p_{\theta}(z)]&lt;/script&gt;
 Diagram of the VAE without the reparameterization trick. Dashed arrows represent the sampling operation.
 &lt;/figcaption&gt;
 
-&lt;p&gt;The neat solution to this is called the &lt;em&gt;reparameterization trick&lt;/em&gt;, which moves the stochastic operation to an input layer and results in continuous linkage between the encoder and decoder allowing for backpropogation all the way through the encoder. Instead of sampling directly from the encoder &lt;script type=&quot;math/tex&quot;&gt;z_i \sim q_{\phi}(z \lvert x_i)&lt;/script&gt;, we can represent &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; as a deterministic function of &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; and some noise &lt;script type=&quot;math/tex&quot;&gt;\epsilon&lt;/script&gt;:&lt;/p&gt;
+&lt;p&gt;The neat solution to this is called the &lt;em&gt;reparameterization trick&lt;/em&gt;, which moves the stochastic operation to an input layer and results in continuous linkage between the encoder and decoder allowing for backpropogation all the way through the encoder. Instead of sampling directly from the encoder &lt;script type=&quot;math/tex&quot;&gt;z_i \sim q_{\phi}(z_i \lvert x_i)&lt;/script&gt;, we can represent &lt;script type=&quot;math/tex&quot;&gt;z_i&lt;/script&gt; as a deterministic function of &lt;script type=&quot;math/tex&quot;&gt;x_i&lt;/script&gt; and some noise &lt;script type=&quot;math/tex&quot;&gt;\epsilon_i&lt;/script&gt;:&lt;/p&gt;
 
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;z_i = g_{\phi}(x_i, \epsilon) = \mu_{\phi}(x) + diag(\sigma_{\phi}(x)) \cdot \epsilon \\
-\epsilon \sim \mathcal{N}(0, I)&lt;/script&gt;
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;z_i = g_{\phi}(x_i, \epsilon_i) = \mu_{\phi}(x_i) + diag(\sigma_{\phi}(x_i)) \cdot \epsilon_i \\
+\epsilon_i \sim \mathcal{N}(0, I)&lt;/script&gt;
 
-&lt;p&gt;You can show that &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; defined in this way follows the distribution &lt;script type=&quot;math/tex&quot;&gt;q_{\phi}(z \lvert x_i)&lt;/script&gt;.&lt;/p&gt;
+&lt;p&gt;You can show that &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; defined in this way follows the distribution &lt;script type=&quot;math/tex&quot;&gt;q_{\phi}(z \lvert x)&lt;/script&gt;.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/vae/architecture-with-reparam.png&quot; alt=&quot;&quot; width=&quot;550&quot; class=&quot;align-center&quot; /&gt;&lt;/p&gt;
 &lt;figcaption&gt;
@@ -538,6 +812,12 @@ Diagram of the VAE with the reparameterization trick. Dashed arrows represent th
 &lt;p&gt;Another practical use is representation learning. It is certainly possible that using the latent representation of your data will improve performance of downstream tasks, such as clustering or classification. After training the VAE you can transform your data by passing it through the encoder and taking the most probable latent vectors &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; (which equates to taking the mean vector outputted from the encoder). Data outside of the training set can also be transformed by a previously-trained VAE. Of course, performance will be best when the new data is similar to the training data, i.e., comes from the same domain or natural distribution. As an extreme example, it probably wouldn’t make much sense to transform medical image data using a VAE that was trained on MNIST.&lt;/p&gt;
 
 &lt;p&gt;Yet another use is anomaly detection. There are various ways to leverage the probabilistic nature of the VAE to determine when a new data point is very improbable and therefore anomalous. For example, you could pass the new data through the encoder and measure the KL divergence between the encoder’s distribution and the prior. A high KL divergence would indicate that the new data is dissimilar to the data the VAE saw during training.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;In this post we introduced the VAE and showed how it is a modern extension of the same theory that motivates the classical expectation maximization algorithm. We also derived the VAE’s objective function and explained some of the intuition behind it.&lt;/p&gt;
+
+&lt;p&gt;Some of the important details regarding the neural network architecture and optimization were discussed. We saw how the probabilistic encoder and probabilistic decoder are modeled as neural networks and how the reparameterization trick is used to allow for backpropogation through the entire network.&lt;/p&gt;
 
 &lt;p&gt;To see the VAE in action, check out my &lt;a href=&quot;http://localhost:4000/vae-series/vae-code-experiments&quot;&gt;next post&lt;/a&gt; which draws a strong connection between the theory presented here and actual PyTorch code and presents the results of several interesting experiments.&lt;/p&gt;
 
@@ -555,12 +835,12 @@ Diagram of the VAE with the reparameterization trick. Dashed arrows represent th
 
 &lt;p&gt;[6] Daniil Polykovskiy, Alexander Novikov, National Research University Higher School of Economics, Coursera, &lt;a href=&quot;https://www.coursera.org/learn/bayesian-methods-in-machine-learning&quot;&gt;Bayesian Methods for Machine Learning&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;[7] Martin Krasser, &lt;a href=&quot;http://krasserm.github.io/2018/04/03/variational-inference/&quot;&gt;From expectation maximization to stochastic variational inference&lt;/a&gt;&lt;/p&gt;</content><author><name>Adam Lineberry</name></author><category term="machine learning" /><summary type="html">Transforming general theory into VAE-specific theory</summary></entry><entry><title type="html">[DRAFT] Blog Post Series: From KL Divergence to Variational Autoencoder in PyTorch</title><link href="http://localhost:4000/vae-series" rel="alternate" type="text/html" title="[DRAFT] Blog Post Series: From KL Divergence to Variational Autoencoder in PyTorch" /><published>2019-05-28T00:00:00-06:00</published><updated>2019-05-28T00:00:00-06:00</updated><id>http://localhost:4000/vae-series</id><content type="html" xml:base="http://localhost:4000/vae-series">&lt;p&gt;In this series of four posts, I attempt to build up the theory, mathematics, and intuition of variational autoencoders (VAE), starting with some basic fundamentals and then moving closer and closer to a full PyTorch implementation with each post. Without sacrificing technical rigor, I try to demystify things along the way by providing informal discussion aimed at building the reader’s intuition.&lt;/p&gt;
+&lt;p&gt;[7] Martin Krasser, &lt;a href=&quot;http://krasserm.github.io/2018/04/03/variational-inference/&quot;&gt;From expectation maximization to stochastic variational inference&lt;/a&gt;&lt;/p&gt;</content><author><name>Adam Lineberry</name></author><category term="machine learning" /><summary type="html">Transforming general theory into VAE-specific theory</summary></entry><entry><title type="html">Blog Post Series: From KL Divergence to Variational Autoencoder in PyTorch</title><link href="http://localhost:4000/vae-series" rel="alternate" type="text/html" title="Blog Post Series: From KL Divergence to Variational Autoencoder in PyTorch" /><published>2019-07-07T00:00:00-06:00</published><updated>2019-07-07T00:00:00-06:00</updated><id>http://localhost:4000/vae-series</id><content type="html" xml:base="http://localhost:4000/vae-series">&lt;p&gt;In this series of four posts, I attempt to build up the theory, mathematics, and intuition of variational autoencoders (VAE), starting with some basic fundamentals and then moving closer and closer to a full PyTorch implementation with each post.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/vae/vae-architecture.png&quot; alt=&quot;&quot; class=&quot;align-center&quot; /&gt;&lt;/p&gt;
 &lt;figcaption&gt;Illustration of the VAE model architecture&lt;/figcaption&gt;
 
-&lt;p&gt;The ultimate goal of the series is to provide the full picture of variational autoencoders, all the way from expected values to Python classes. The first couple of posts deal with the general theory of variational inference and deriving and understanding the evidence lower bound (ELBO). The third post transforms the general theory to VAE-specific theory. The fourth post establishes the final connections between theory and code, provides a full VAE implementation written in PyTorch, and shows some interesting experiments.&lt;/p&gt;
+&lt;p&gt;The ultimate goal of the series is to provide the full picture of variational autoencoders, all the way from expected values to Python classes. The first two posts discuss the general theory and derivations of variational inference and understanding the evidence lower bound (ELBO). The third post evolves general theory to VAE-specific theory. The fourth post establishes the final connections between theory and code, provides a full VAE implementation written in PyTorch, and shows some interesting experiments.&lt;/p&gt;
 
 &lt;figure class=&quot;half&quot; style=&quot;display:flex&quot;&gt;
   &lt;img src=&quot;http://localhost:4000/images/vae/datagen_final.png&quot; height=&quot;100&quot; /&gt;
@@ -571,9 +851,9 @@ Diagram of the VAE with the reparameterization trick. Dashed arrows represent th
 
 &lt;ol&gt;
   &lt;li&gt;&lt;a href=&quot;http://localhost:4000/vae-series/kl-divergence&quot;&gt;&lt;strong&gt;A Quick Primer on KL Divergence&lt;/strong&gt;&lt;/a&gt;. KL divergence is fundamental tool that is used everywhere in this series. This is a quick introduction for those who may not be familiar already.&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://localhost:4000/vae-series/kl-divergence&quot;&gt;&lt;strong&gt;Latent Variable Models, Expectation Maximization, and Variational Inference&lt;/strong&gt;&lt;/a&gt;. This post dives into latent variable models and how to train them. It also introduces expectation maximization (EM), which is very related to the VAE.&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://localhost:4000/vae-series/vae-theory&quot;&gt;&lt;strong&gt;Variational Autoencoder Theory&lt;/strong&gt;&lt;/a&gt;. Here, we continue to develop the theory into the VAE objective function and discuss how the VAE model architecture is designed to achieve specific probabilistic goals.&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://localhost:4000/vae-series/vae-theory&quot;&gt;&lt;strong&gt;Variational Autoencoder Code and Experiments&lt;/strong&gt;&lt;/a&gt;. The culmination of the series, this post hammers home how to implement the theoretical framework in code. It also provides the code itself and shows some interesting experiments.&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://localhost:4000/vae-series/variational-inference&quot;&gt;&lt;strong&gt;Latent Variable Models, Expectation Maximization, and Variational Inference&lt;/strong&gt;&lt;/a&gt;. This post dives into latent variable models and how to train them. It also introduces expectation maximization (EM), which is very related to the VAE.&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://localhost:4000/vae-series/vae-theory&quot;&gt;&lt;strong&gt;Variational Autoencoder Theory&lt;/strong&gt;&lt;/a&gt;. Develops the theory of variational inference into the VAE objective function and discusses how the VAE model architecture is designed to achieve specific probabilistic goals.&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://localhost:4000/vae-series/vae-code-experiments&quot;&gt;&lt;strong&gt;Variational Autoencoder Code and Experiments&lt;/strong&gt;&lt;/a&gt;. The culmination of the series, this post draws the final connections between the theoretical framework of variational autoencoders and a PyTorch implementation.&lt;/li&gt;
 &lt;/ol&gt;</content><author><name>Adam Lineberry</name></author><category term="machine learning" /><summary type="html">Landing page for the blog post series</summary></entry><entry><title type="html">Interesting Details about ROC Curve Calculations</title><link href="http://localhost:4000/how-auroc-is-calculated/" rel="alternate" type="text/html" title="Interesting Details about ROC Curve Calculations" /><published>2019-05-20T00:00:00-06:00</published><updated>2019-05-20T00:00:00-06:00</updated><id>http://localhost:4000/how-auroc-is-calculated</id><content type="html" xml:base="http://localhost:4000/how-auroc-is-calculated/">&lt;p&gt;The area under the receiver operating characteristic curve (commonly known as “AUC” or “AUROC”) is a widely used metric for evaluating binary classifiers. Most data scientists are familiar with the famous curve itself, which plots the true positive rate against the false positive rate, and are familiar with integrals (i.e., area under the curve). So, it’s a pretty straightforward concept theoretically, but how is it actually calculated for a real dataset and a real model? That is what we’ll be digging into in this post. There’s some interesting intuition to be gained by understanding the exact implementation (which is quite simple).&lt;/p&gt;
 
 &lt;p&gt;Quick disclaimer here: It is not the intent of this post to show how these calculations are implemented in production; there are variations and optimizations to the methodology and code presented. Rather, the intent is to show a basic, easy to understand implementation with the objective of building the reader’s intuition.&lt;/p&gt;
@@ -1193,168 +1473,4 @@ Diagram of the VAE with the reparameterization trick. Dashed arrows represent th
 
 &lt;p&gt;In this post we covered the intuition behind ROC/AUC calculations, and warned against some common mistakes. We also proved the calculations can be performed using unnormalized model scores, and performed hand-calculations for a custom Pytorch logistic regression model trained on synthetic data and verified the results against scikit-learn results.&lt;/p&gt;
 
-&lt;p&gt;The notebook associated with the code in this post can be found &lt;a href=&quot;https://github.com/acetherace/alcore/blob/master/notebooks/how-auroc-is-calculated.ipynb&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;</content><author><name>Adam Lineberry</name></author><category term="machine learning" /><summary type="html">A discussion and code-based walkthrough on how common AUROC computations are performed</summary></entry><entry><title type="html">[DRAFT] A Quick Primer on KL Divergence</title><link href="http://localhost:4000/vae-series/kl-divergence" rel="alternate" type="text/html" title="[DRAFT] A Quick Primer on KL Divergence" /><published>2019-05-20T00:00:00-06:00</published><updated>2019-05-20T00:00:00-06:00</updated><id>http://localhost:4000/vae-series/KL-divergence</id><content type="html" xml:base="http://localhost:4000/vae-series/kl-divergence">&lt;p&gt;The Kullback-Leibler divergence, better known as simply &lt;em&gt;KL divergence&lt;/em&gt; is a way to measure the “distance” between two probability distributions over the same variable. In this post we will consider distributions &lt;script type=&quot;math/tex&quot;&gt;q&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;p&lt;/script&gt; over the random variable &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt;.&lt;/p&gt;
-
-&lt;p&gt;There are multiple ways to write the KL divergence equation, and it’s beneficial to know all the different forms so you can quickly recognize it when manipulating probability equations.&lt;/p&gt;
-
-&lt;p&gt;For discrete random variables it takes the forms:&lt;/p&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;KL[ q \lVert p ] = \sum\limits_{z} q(z) \log\frac{q(z)}{p(z)} = -\sum\limits_{z} q(z)\log\frac{p(z)}{q(z)}&lt;/script&gt;
-
-&lt;p&gt;For continuous random variables it takes the forms:&lt;/p&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;KL[ q \lVert p ] = \int q(z) \log \frac{q(z)}{p(z)}dz = - \int q(z) \log \frac{p(z)}{q(z)}dz&lt;/script&gt;
-
-&lt;p&gt;And in general it can be written as an expected value:&lt;/p&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;KL[ q \lVert p ] = \mathbb{E_{q(z)}} \log \frac{q(z)}{p(z)} = - \mathbb{E_{q(z)}} \log \frac{p(z)}{q(z)}&lt;/script&gt;
-
-&lt;p&gt;To build some intuition, let’s focus on the following form:&lt;/p&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;KL[ q \lVert p ] = \mathbb{E_{q(z)}} \log \frac{q(z)}{p(z)}&lt;/script&gt;
-
-&lt;p&gt;Notice that the term &lt;script type=&quot;math/tex&quot;&gt;\log q(z)/p(z)&lt;/script&gt; is the difference between two log probabilities: &lt;script type=&quot;math/tex&quot;&gt;\log q(z) - \log p(z)&lt;/script&gt;. So, the intuition stems from the fact that KL divergence is the expected difference in log probabilities over &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt;. Although not entirely technically correct, imagine the following to help build an intuition: consider two, perhaps similar, univariate probability density functions &lt;script type=&quot;math/tex&quot;&gt;q(z)&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;p(z)&lt;/script&gt; and imagine sliding across the domain of &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; and observing the difference &lt;script type=&quot;math/tex&quot;&gt;q(z)-p(z)&lt;/script&gt; at every point. This is kind of how KL divergence quantifies the “distance” between two distributions.&lt;/p&gt;
-
-&lt;p&gt;Now, a couple of important properties that I won’t prove:&lt;/p&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;KL[q||p] \neq KL[p||q]&lt;/script&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;KL[q||p] \geq 0 \quad \forall q, p&lt;/script&gt;
-
-&lt;p&gt;The asymmetric property begs the question: should I use &lt;script type=&quot;math/tex&quot;&gt;KL[q\|p]&lt;/script&gt; or &lt;script type=&quot;math/tex&quot;&gt;KL[p\|q]&lt;/script&gt;? This leads us to the subject of forward versus reverse KL divergence.&lt;/p&gt;
-
-&lt;h2 id=&quot;forward-vs-reverse-kl-divergence&quot;&gt;Forward vs. Reverse KL Divergence&lt;/h2&gt;
-
-&lt;p&gt;In practice, KL divergence is typically used to learn an approximate probability distribution &lt;script type=&quot;math/tex&quot;&gt;q&lt;/script&gt; to estimate a theoretic but intractable distribution &lt;script type=&quot;math/tex&quot;&gt;p&lt;/script&gt;. Typically &lt;script type=&quot;math/tex&quot;&gt;q&lt;/script&gt; will be of simpler form than &lt;script type=&quot;math/tex&quot;&gt;p&lt;/script&gt;, since &lt;script type=&quot;math/tex&quot;&gt;p&lt;/script&gt;’s complexity is what drove us to approximate it in the first place. As a simple example, &lt;script type=&quot;math/tex&quot;&gt;p&lt;/script&gt; could be a bimodal distribution and &lt;script type=&quot;math/tex&quot;&gt;q&lt;/script&gt; a unimodal one. When thinking about forward versus backward KL, think of &lt;script type=&quot;math/tex&quot;&gt;p&lt;/script&gt; as fixed and &lt;script type=&quot;math/tex&quot;&gt;q&lt;/script&gt; as something fluid that we are free to mold to &lt;script type=&quot;math/tex&quot;&gt;p&lt;/script&gt;.&lt;/p&gt;
-
-&lt;p&gt;Forward KL takes the form&lt;/p&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;KL[ p || q ] = \sum\limits_{z}p(z) \log\frac{p(z)}{q(z)}&lt;/script&gt;
-
-&lt;p&gt;As you can see from this equation and the figure below, there is a penalty anywhere &lt;script type=&quot;math/tex&quot;&gt;p(z) &gt; 0&lt;/script&gt; that &lt;script type=&quot;math/tex&quot;&gt;q&lt;/script&gt; is not covering. In fact, if &lt;script type=&quot;math/tex&quot;&gt;q(z)=0&lt;/script&gt; in a region where &lt;script type=&quot;math/tex&quot;&gt;p(z)&gt;0&lt;/script&gt;, the KL divergence blows up because &lt;script type=&quot;math/tex&quot;&gt;\lim_{q(z) \to 0} \log \frac{p(z)}{q(z)} \to \infty&lt;/script&gt;. This results in learning a &lt;script type=&quot;math/tex&quot;&gt;q&lt;/script&gt; that spreads out to cover all regions where &lt;script type=&quot;math/tex&quot;&gt;p&lt;/script&gt; has any density. This is known as “zero avoiding”.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/vae/forward-KL.png&quot; alt=&quot;&quot; height=&quot;200&quot; /&gt;&lt;/p&gt;
-&lt;figcaption&gt;Illustration of the &quot;zero-avoiding&quot; behavior of forward KL (source&lt;sup&gt;1&lt;/sup&gt;)&lt;/figcaption&gt;
-
-&lt;p&gt;Reverse KL takes the form&lt;/p&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;KL[ q || p ] = \sum\limits_{z}q(z) \log\frac{q(z)}{p(z)}&lt;/script&gt;
-
-&lt;p&gt;As seen from the equation and the figure, reverse KL has a much different behavior. Now, the KL divergence will blow up anywhere &lt;script type=&quot;math/tex&quot;&gt;p(z)=0&lt;/script&gt; unless the weighting term &lt;script type=&quot;math/tex&quot;&gt;q(z)=0&lt;/script&gt;. In other words, &lt;script type=&quot;math/tex&quot;&gt;q(z)&lt;/script&gt; is encouraged to be zero everywhere that &lt;script type=&quot;math/tex&quot;&gt;p(z)&lt;/script&gt; is zero. This is called “zero-forcing” behavior.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/vae/reverse-KL.png&quot; alt=&quot;&quot; height=&quot;200&quot; /&gt;&lt;/p&gt;
-&lt;figcaption&gt;Illustration of the &quot;zero-forcing&quot; behavior of reverse KL (source&lt;sup&gt;1&lt;/sup&gt;)&lt;/figcaption&gt;
-
-&lt;p&gt;It’s important to know that there are profound differences between &lt;script type=&quot;math/tex&quot;&gt;KL[p \lVert q]&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;KL[q \lVert p]&lt;/script&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;resources&quot;&gt;Resources&lt;/h2&gt;
-
-&lt;p&gt;[1] Eric Jang, &lt;a href=&quot;https://blog.evjang.com/2016/08/variational-bayes.html&quot;&gt;A Beginner’s Guide to Variational Methods: Mean-Field Approximation&lt;/a&gt;&lt;/p&gt;</content><author><name>Adam Lineberry</name></author><category term="machine learning" /><summary type="html">Introductory discussion on KL divergence with an emphasis on building intuition from the mathematics</summary></entry><entry><title type="html">[DRAFT] Latent Variable Models, Expectation Maximization, and Variational Inference</title><link href="http://localhost:4000/vae-series/variational-inference" rel="alternate" type="text/html" title="[DRAFT] Latent Variable Models, Expectation Maximization, and Variational Inference" /><published>2019-05-20T00:00:00-06:00</published><updated>2019-05-20T00:00:00-06:00</updated><id>http://localhost:4000/vae-series/variational-inference</id><content type="html" xml:base="http://localhost:4000/vae-series/variational-inference">&lt;p&gt;Latent variable models are a powerful form of unsupervised machine learning used for a variety of tasks such as clustering, dimensionality reduction, data generation, and topic modeling. The basic premise is that there is some latent and unobserved variable &lt;script type=&quot;math/tex&quot;&gt;z_{i}&lt;/script&gt; that causes the observed data &lt;script type=&quot;math/tex&quot;&gt;x_{i}&lt;/script&gt;. The graphical model (or Bayesian network) representing this paradigm is as follows:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/vae/graphical-model.png&quot; alt=&quot;&quot; width=&quot;200&quot; class=&quot;align-center&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Latent variable models model the probability distribution:&lt;/p&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;p_{\theta}(x, z) = p_{\theta}(x \lvert z)p_{\theta}(z)&lt;/script&gt;
-
-&lt;p&gt;and are trained by maximizing the marginal likelihood:&lt;/p&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;p_{\theta}(x) = \int p_{\theta}(x \lvert z)p_{\theta}(z)dz&lt;/script&gt;
-
-&lt;p&gt;The introduction of latent variables allow us to more accurately model the data and discover valuable insights from the latent variables themselves. In the topic modeling case we know beforehand that each document in a coprous tends to have a focus on a particular topic or subset of topics. For example, articles in a newspaper typically address topics such as politics, business, or sports. Real world corpora encounted in industry can be more complex and ambiguous, such as customer support transcripts, product reviews, or legal contracts. By structuring a model to incorporate this knowledge we are able to more accurately calculate the probability of a document, and perhaps more importantly, discover the topics being discussed in a corpus and provide topic assignment to individual documents.&lt;/p&gt;
-
-&lt;p&gt;Learning probability distributions such as &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(x)&lt;/script&gt;, &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(z \lvert x)&lt;/script&gt;, and &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(x \lvert z)&lt;/script&gt; can be used for tasks like anomaly detection or data generation. More commonly though, the identification of the latent variables themselves are the main contribution of latent variable models. In the Gaussian mixture model (GMM) the latent variables are the cluster assignments. In latent Dirichlet allocation (LDA) the latent variables are the topic assignments. In the variational autoencoder (VAE) the latent variables are the compressed representations of that data.&lt;/p&gt;
-
-&lt;h2 id=&quot;marginal-likelihood-training&quot;&gt;Marginal likelihood training&lt;/h2&gt;
-
-&lt;p&gt;Latent variable models are trained by maximizing the marginal likelihood. Since the logarithm is a monotonically increasing function, the marginal log likelihood is maximized instead since the logarithm simplifies the computation.&lt;/p&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;\theta = \underset{\theta}{\mathrm{argmax}}\ p_{\theta}(x) = \underset{\theta}{\mathrm{argmax}}\ \log p_{\theta}(x)&lt;/script&gt;
-
-&lt;p&gt;Given a training dataset &lt;script type=&quot;math/tex&quot;&gt;D&lt;/script&gt; composed of &lt;script type=&quot;math/tex&quot;&gt;N&lt;/script&gt; data points &lt;script type=&quot;math/tex&quot;&gt;x_i&lt;/script&gt;, &lt;script type=&quot;math/tex&quot;&gt;D = \{x_1, x_2, \ldots, x_N\}&lt;/script&gt; where each &lt;script type=&quot;math/tex&quot;&gt;x_i \in \Bbb R^d&lt;/script&gt;, the marginal log likelihood is expressed as&lt;/p&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
-\begin{align}
-\log p_{\theta}(x) &amp;= \log \prod_{i=1}^{N} p_{\theta}(x_i) \tag{1} \\
-&amp;= \sum_{i=1}^{N} \log p_{\theta}(x_{i}) \\
-&amp;= \sum_{i=1}^{N} \log \int p_{\theta}(x_i, z)dz \\
-&amp;= \sum_{i=1}^{N} \log \int p_{\theta}(x_i \lvert z)p_{\theta}(z)dz
-\end{align} %]]&gt;&lt;/script&gt;
-
-&lt;p&gt;Ideally we would maximize this expression directly, but the integral is typically intractable. For example, if &lt;script type=&quot;math/tex&quot;&gt;z&lt;/script&gt; is high dimensional, the integral takes the form &lt;script type=&quot;math/tex&quot;&gt;\int\int\int\dots\int&lt;/script&gt;.&lt;/p&gt;
-
-&lt;p&gt;As previously discussed, another requirement for latent variable models to be useful is the the ability to calculate the posterior of the latent variables.&lt;/p&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;p_{\theta}(z \lvert x) = \frac{p_{\theta}(x \lvert z)p_{\theta}(z)}{p_{\theta}(x)}&lt;/script&gt;
-
-&lt;p&gt;Again, this calculation is typically intractable because &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(x)&lt;/script&gt; appears in the denominator. There are two main approaches to handling this issue: Monte Carlo sampling and variational inference. We will be focusing on variational inference in this post.&lt;/p&gt;
-
-&lt;h2 id=&quot;derivation-of-variational-lower-bound&quot;&gt;Derivation of Variational Lower Bound&lt;/h2&gt;
-
-&lt;p&gt;To start, let’s assume that the posterior &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(z \lvert x)&lt;/script&gt; is intractable. To deal with this we will consider another distribution &lt;script type=&quot;math/tex&quot;&gt;q_{\phi}(z)&lt;/script&gt;. We would like &lt;script type=&quot;math/tex&quot;&gt;q_{\phi}(z)&lt;/script&gt; to closely approximate &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(z \lvert x)&lt;/script&gt; and we are free to choose any form we like for &lt;script type=&quot;math/tex&quot;&gt;q&lt;/script&gt;. For example, we could choose &lt;script type=&quot;math/tex&quot;&gt;q&lt;/script&gt; to be static or conditional on &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; in some way (as you might guess, &lt;script type=&quot;math/tex&quot;&gt;q&lt;/script&gt; &lt;strong&gt;is&lt;/strong&gt; typically conditioned on &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt;). A good approximation can be seen as one that minimizes the KL divergence (for a primer on KL divergence, see &lt;a href=&quot;http://localhost:4000/vae-series/kl-divergence&quot;&gt;this post&lt;/a&gt;):&lt;/p&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;KL[q_{\phi}(z) \lVert p_{\theta}(z \lvert x)] =
--\underset{z}{\sum} q_{\phi}(z) \log \frac{p_{\theta}(z \lvert x)}{q_{\phi}(z)}&lt;/script&gt;
-
-&lt;p&gt;Now, substituting using Bayes’ rule and arranging variables in a convenient way:&lt;/p&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
-\begin{align}
-&amp;= -\underset{z}{\sum} q_{\phi}(z) \log \bigg( \frac{p_{\theta}(x,z)}{q_{\phi}(z)} \cdot \frac{1}{p_{\theta}(x)} \bigg) \\
-&amp;= -\underset{z}{\sum} q_{\phi}(z) \bigg( \log\frac{p_{\theta}(x,z)}{q_{\phi}(z)} - \log p_{\theta}(x) \bigg) \\
-&amp;= -\underset{z}{\sum} q_{\phi}(z) \log \frac{p_{\theta}(x,z)}{q_{\phi}(z)} + \underset{z}{\sum} q_{\phi}(z) \log p_{\theta}(x)
-\end{align} %]]&gt;&lt;/script&gt;
-
-&lt;p&gt;Note that in the second term, &lt;script type=&quot;math/tex&quot;&gt;\underset{z}{\sum} q(z) \log p(x)&lt;/script&gt;, &lt;script type=&quot;math/tex&quot;&gt;\log p(x)&lt;/script&gt; is constant w.r.t. the summation so it can be moved outside, leaving &lt;script type=&quot;math/tex&quot;&gt;\log p(x) \underset{z}{\sum} q(z)&lt;/script&gt;. By definition of a probability distribution, &lt;script type=&quot;math/tex&quot;&gt;\underset{z}{\sum} q(z) = 1&lt;/script&gt;, so the term ultimately simplifies to &lt;script type=&quot;math/tex&quot;&gt;\log p(x)&lt;/script&gt;. So, we are left with:&lt;/p&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;KL[q_{\phi}(z) \lVert p_{\theta}(z \lvert x)] =
--\underset{z}{\sum} q_{\phi}(z) \log \frac{p_{\theta}(x,z)}{q_{\phi}(z)} + \log p_{\theta}(x)&lt;/script&gt;
-
-&lt;p&gt;Rearranging for clarity:&lt;/p&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;\log p_{\theta}(x) = KL[q_{\phi}(z) \lVert p_{\theta}(z \lvert x)] + \underset{z}{\sum} q_{\phi}(z) \log \frac{p_{\theta}(x,z)}{q_{\phi}(z)} \tag{2}&lt;/script&gt;
-
-&lt;p&gt;Now, let’s circle back to Eq. 1. Notice that we have derived an expression for the marginal log likelihood &lt;script type=&quot;math/tex&quot;&gt;\log p_{\theta}(x)&lt;/script&gt; composed of two terms. The first term is the KL divergence between our variational distribution &lt;script type=&quot;math/tex&quot;&gt;q_{\phi}(z)&lt;/script&gt; and the intractable posterior &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(z \lvert x)&lt;/script&gt;. The second term is is called the &lt;strong&gt;variational lower bound&lt;/strong&gt; or evidence lower bound (the acronym &lt;strong&gt;ELBO&lt;/strong&gt; is frequently used in the literature).&lt;/p&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
-\begin{align}
-\mathcal{L} &amp;= \underset{z}{\sum} q_{\phi}(z) \log \frac{p_{\theta}(x,z)}{q_{\phi}(z)} \\
-&amp;= \mathbb{E_{q_{\phi}(z)}} \log \frac{p_{\theta}(x,z)}{q_{\phi}(z)}
-\end{align} %]]&gt;&lt;/script&gt;
-
-&lt;p&gt;Since &lt;script type=&quot;math/tex&quot;&gt;KL[q \lVert p] \geq 0\ \forall q, p&lt;/script&gt;, it is immediate that &lt;script type=&quot;math/tex&quot;&gt;\mathcal{L}&lt;/script&gt; is indeed a lower bound for the marginal log likelihood: &lt;script type=&quot;math/tex&quot;&gt;\mathcal{L} \leq \log p_{\theta}(x)&lt;/script&gt;. Variational inference methods focus on the tractable task of maximizing the ELBO instead of maximizing the likelihood directly.&lt;/p&gt;
-
-&lt;h2 id=&quot;optimization-methods&quot;&gt;Optimization methods&lt;/h2&gt;
-
-&lt;p&gt;Most optimization methods involve some kind of iterative updating procedure where &lt;script type=&quot;math/tex&quot;&gt;\mathcal{L}&lt;/script&gt; is maximized w.r.t. &lt;script type=&quot;math/tex&quot;&gt;\phi&lt;/script&gt; and then w.r.t. &lt;script type=&quot;math/tex&quot;&gt;\theta&lt;/script&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;expectation-maximization&quot;&gt;Expectation Maximization&lt;/h3&gt;
-
-&lt;p&gt;In the simplest case, when &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(z \lvert x)&lt;/script&gt; is tractable (e.g., GMMs), the expectation maximization (EM) algorithm can be applied. First, parameters &lt;script type=&quot;math/tex&quot;&gt;\theta&lt;/script&gt; are randomly initialized. EM then exploits the tractable posterior by holding &lt;script type=&quot;math/tex&quot;&gt;\theta&lt;/script&gt; fixed and updating &lt;script type=&quot;math/tex&quot;&gt;\phi&lt;/script&gt; by simply setting &lt;script type=&quot;math/tex&quot;&gt;q_{\phi}(z) = p_{\theta}(z \lvert x)&lt;/script&gt; in the &lt;em&gt;E-step&lt;/em&gt;. Notice that since we are holding &lt;script type=&quot;math/tex&quot;&gt;\theta&lt;/script&gt; fixed, the left hand side of Eq. 2 is a constant during this step, and the update to &lt;script type=&quot;math/tex&quot;&gt;\phi&lt;/script&gt; sets the KL term to zero. This means the ELBO term is equal to the log likelihood, which is the best possible optimization step. It’s interesting because, in this interpretation, the EM algorithm does not bother with the ELBO directly in the E-step and instead maximizes it indirectly by minimizing the KL term.&lt;/p&gt;
-
-&lt;p&gt;In the &lt;em&gt;M-step&lt;/em&gt;, &lt;script type=&quot;math/tex&quot;&gt;\phi&lt;/script&gt; is fixed and &lt;script type=&quot;math/tex&quot;&gt;\theta&lt;/script&gt; is updated by maximizing the ELBO. Isolating the terms that depend on &lt;script type=&quot;math/tex&quot;&gt;\theta&lt;/script&gt;&lt;/p&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
-\begin{align}
-\mathcal{L} &amp;= \mathbb{E_{q_{\phi}(z)}} \log \frac{p_{\theta}(x,z)}{q_{\phi}(z)} \\
-&amp;= \mathbb{E_{q_{\phi}(z)}} \big( \log p_{\theta}(x,z) - \log q_{\phi}(z) \big) \\
-&amp;= \mathbb{E_{q_{\phi}(z)}} \log p_{\theta}(x,z) - \mathbb{E_{q_{\phi}(z)}} \log q_{\phi}(z)
-\end{align} %]]&gt;&lt;/script&gt;
-
-&lt;p&gt;Since the second term does not depend on &lt;script type=&quot;math/tex&quot;&gt;\theta&lt;/script&gt;, we see that the M-step is simply maximizing the expected joint likelihood of the data&lt;/p&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;\theta = \underset{\theta}{\mathrm{argmax}}\ \mathbb{E_{q_{\phi}(z)}} \log p_{\theta}(x,z)&lt;/script&gt;
-
-&lt;p&gt;EM is guaranteed to converge to a local maximum or a saddle point of the marginal likelihood.&lt;/p&gt;
-
-&lt;h3 id=&quot;other-methods&quot;&gt;Other methods&lt;/h3&gt;
-
-&lt;p&gt;There are plenty of cases where the posterior &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(z \lvert x)&lt;/script&gt; is not tractable. A more recent approach to solving this problem is to use deep neural networks to jointly learn &lt;script type=&quot;math/tex&quot;&gt;q_{\phi}(z \lvert x)&lt;/script&gt; and &lt;script type=&quot;math/tex&quot;&gt;p_{\theta}(x \lvert z)&lt;/script&gt; with an ELBO loss function, such as in the variational autoencoder. For more on this see my &lt;a href=&quot;http://localhost:4000/vae-series/vae-theory&quot;&gt;post on variational autoencoder theory&lt;/a&gt;, where we will further refine the theory presented here to form the basis for the variational autoencoder.&lt;/p&gt;
-
-&lt;h2 id=&quot;resources&quot;&gt;Resources&lt;/h2&gt;
-
-&lt;p&gt;[1] Volodymyr Kuleshov, Stefano Ermon, &lt;a href=&quot;https://ermongroup.github.io/cs228-notes/learning/latent/&quot;&gt;Learning in latent variable models&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;[2] Ali Ghodsi, &lt;a href=&quot;https://youtu.be/uaaqyVS9-rM&quot;&gt;Lec : Deep Learning, Variational Autoencoder, Oct 12 2017 [Lect 6.2]&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;[3] Daniil Polykovskiy, Alexander Novikov, National Research University Higher School of Economics, Coursera, &lt;a href=&quot;https://www.coursera.org/learn/bayesian-methods-in-machine-learning&quot;&gt;Bayesian Methods for Machine Learning&lt;/a&gt;&lt;/p&gt;</content><author><name>Adam Lineberry</name></author><category term="machine learning" /><summary type="html">Introduction to the general theory of variational inference</summary></entry></feed>
+&lt;p&gt;The notebook associated with the code in this post can be found &lt;a href=&quot;https://github.com/acetherace/alcore/blob/master/notebooks/how-auroc-is-calculated.ipynb&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;</content><author><name>Adam Lineberry</name></author><category term="machine learning" /><summary type="html">A discussion and code-based walkthrough on how common AUROC computations are performed</summary></entry></feed>

@@ -9,7 +9,7 @@
   <head>
     <meta charset="utf-8">
 
-<!-- begin _includes/seo.html --><title>[DRAFT] Blog Post Series: From KL Divergence to Variational Autoencoder in PyTorch - Adam Lineberry</title>
+<!-- begin _includes/seo.html --><title>Blog Post Series: From KL Divergence to Variational Autoencoder in PyTorch - Adam Lineberry</title>
 <meta name="description" content="Landing page for the blog post series">
 
 
@@ -17,7 +17,7 @@
 <meta property="og:type" content="article">
 <meta property="og:locale" content="en_US">
 <meta property="og:site_name" content="Adam Lineberry">
-<meta property="og:title" content="[DRAFT] Blog Post Series: From KL Divergence to Variational Autoencoder in PyTorch">
+<meta property="og:title" content="Blog Post Series: From KL Divergence to Variational Autoencoder in PyTorch">
 <meta property="og:url" content="http://localhost:4000/vae-series">
 
 
@@ -29,7 +29,7 @@
 
 
 
-  <meta property="article:published_time" content="2019-05-28T00:00:00-06:00">
+  <meta property="article:published_time" content="2019-07-07T00:00:00-06:00">
 
 
 
@@ -160,7 +160,7 @@
       
 
       
-        <img src="/images/headshot.png" alt="Adam Lineberry" itemprop="image">
+        <img src="/images/headshot2.jpeg" alt="Adam Lineberry" itemprop="image">
       
     </div>
   
@@ -273,15 +273,15 @@
 
 
   <article class="page" itemscope itemtype="https://schema.org/CreativeWork">
-    <meta itemprop="headline" content="[DRAFT] Blog Post Series: From KL Divergence to Variational Autoencoder in PyTorch">
+    <meta itemprop="headline" content="Blog Post Series: From KL Divergence to Variational Autoencoder in PyTorch">
     <meta itemprop="description" content="Landing page for the blog post series">
-    <meta itemprop="datePublished" content="May 28, 2019">
+    <meta itemprop="datePublished" content="July 07, 2019">
     
 
     <div class="page__inner-wrap">
       
         <header>
-          <h1 id="page-title" class="page__title" itemprop="headline">[DRAFT] Blog Post Series: From KL Divergence to Variational Autoencoder in PyTorch
+          <h1 id="page-title" class="page__title" itemprop="headline">Blog Post Series: From KL Divergence to Variational Autoencoder in PyTorch
 </h1>
           
             <p class="page__meta"><i class="far fa-clock" aria-hidden="true"></i> 
@@ -297,12 +297,12 @@
 
       <section class="page__content" itemprop="text">
         
-        <p>In this series of four posts, I attempt to build up the theory, mathematics, and intuition of variational autoencoders (VAE), starting with some basic fundamentals and then moving closer and closer to a full PyTorch implementation with each post. Without sacrificing technical rigor, I try to demystify things along the way by providing informal discussion aimed at building the reader’s intuition.</p>
+        <p>In this series of four posts, I attempt to build up the theory, mathematics, and intuition of variational autoencoders (VAE), starting with some basic fundamentals and then moving closer and closer to a full PyTorch implementation with each post.</p>
 
 <p><img src="http://localhost:4000/images/vae/vae-architecture.png" alt="" class="align-center" /></p>
 <figcaption>Illustration of the VAE model architecture</figcaption>
 
-<p>The ultimate goal of the series is to provide the full picture of variational autoencoders, all the way from expected values to Python classes. The first couple of posts deal with the general theory of variational inference and deriving and understanding the evidence lower bound (ELBO). The third post transforms the general theory to VAE-specific theory. The fourth post establishes the final connections between theory and code, provides a full VAE implementation written in PyTorch, and shows some interesting experiments.</p>
+<p>The ultimate goal of the series is to provide the full picture of variational autoencoders, all the way from expected values to Python classes. The first two posts discuss the general theory and derivations of variational inference and understanding the evidence lower bound (ELBO). The third post evolves general theory to VAE-specific theory. The fourth post establishes the final connections between theory and code, provides a full VAE implementation written in PyTorch, and shows some interesting experiments.</p>
 
 <figure class="half" style="display:flex">
   <img src="http://localhost:4000/images/vae/datagen_final.png" height="100" />
@@ -313,9 +313,9 @@
 
 <ol>
   <li><a href="http://localhost:4000/vae-series/kl-divergence"><strong>A Quick Primer on KL Divergence</strong></a>. KL divergence is fundamental tool that is used everywhere in this series. This is a quick introduction for those who may not be familiar already.</li>
-  <li><a href="http://localhost:4000/vae-series/kl-divergence"><strong>Latent Variable Models, Expectation Maximization, and Variational Inference</strong></a>. This post dives into latent variable models and how to train them. It also introduces expectation maximization (EM), which is very related to the VAE.</li>
-  <li><a href="http://localhost:4000/vae-series/vae-theory"><strong>Variational Autoencoder Theory</strong></a>. Here, we continue to develop the theory into the VAE objective function and discuss how the VAE model architecture is designed to achieve specific probabilistic goals.</li>
-  <li><a href="http://localhost:4000/vae-series/vae-theory"><strong>Variational Autoencoder Code and Experiments</strong></a>. The culmination of the series, this post hammers home how to implement the theoretical framework in code. It also provides the code itself and shows some interesting experiments.</li>
+  <li><a href="http://localhost:4000/vae-series/variational-inference"><strong>Latent Variable Models, Expectation Maximization, and Variational Inference</strong></a>. This post dives into latent variable models and how to train them. It also introduces expectation maximization (EM), which is very related to the VAE.</li>
+  <li><a href="http://localhost:4000/vae-series/vae-theory"><strong>Variational Autoencoder Theory</strong></a>. Develops the theory of variational inference into the VAE objective function and discusses how the VAE model architecture is designed to achieve specific probabilistic goals.</li>
+  <li><a href="http://localhost:4000/vae-series/vae-code-experiments"><strong>Variational Autoencoder Code and Experiments</strong></a>. The culmination of the series, this post draws the final connections between the theoretical framework of variational autoencoders and a PyTorch implementation.</li>
 </ol>
 
         
@@ -346,7 +346,7 @@
 
 
         
-          <p class="page__date"><strong><i class="fas fa-fw fa-calendar-alt" aria-hidden="true"></i> Updated:</strong> <time datetime="2019-05-28T00:00:00-06:00">May 28, 2019</time></p>
+          <p class="page__date"><strong><i class="fas fa-fw fa-calendar-alt" aria-hidden="true"></i> Updated:</strong> <time datetime="2019-07-07T00:00:00-06:00">July 07, 2019</time></p>
         
       </footer>
 
@@ -355,7 +355,7 @@
     <h4 class="page__share-title">Share on</h4>
   
 
-  <a href="https://twitter.com/intent/tweet?text=%5BDRAFT%5D+Blog+Post+Series%3A+From+KL+Divergence+to+Variational+Autoencoder+in+PyTorch%20http%3A%2F%2Flocalhost%3A4000%2Fvae-series" class="btn btn--twitter" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Twitter"><i class="fab fa-fw fa-twitter" aria-hidden="true"></i><span> Twitter</span></a>
+  <a href="https://twitter.com/intent/tweet?text=Blog+Post+Series%3A+From+KL+Divergence+to+Variational+Autoencoder+in+PyTorch%20http%3A%2F%2Flocalhost%3A4000%2Fvae-series" class="btn btn--twitter" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Twitter"><i class="fab fa-fw fa-twitter" aria-hidden="true"></i><span> Twitter</span></a>
 
   <a href="https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Flocalhost%3A4000%2Fvae-series" class="btn btn--facebook" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Facebook"><i class="fab fa-fw fa-facebook" aria-hidden="true"></i><span> Facebook</span></a>
 
@@ -366,7 +366,7 @@
       
   <nav class="pagination">
     
-      <a href="/vae-series/vae-theory" class="pagination--pager" title="[DRAFT] Variational Autoencoder Theory
+      <a href="/vae-series/vae-theory" class="pagination--pager" title="Variational Autoencoder Theory
 ">Previous</a>
     
     
@@ -394,7 +394,7 @@
     
     <h2 class="archive__item-title" itemprop="headline">
       
-        <a href="/vae-series/vae-theory" rel="permalink">[DRAFT] Variational Autoencoder Theory
+        <a href="/vae-series/vae-theory" rel="permalink">Variational Autoencoder Theory
 </a>
       
     </h2>
@@ -404,7 +404,7 @@
 
 
 
-  12 minute read
+  13 minute read
 </p>
     
     <p class="archive__item-excerpt" itemprop="description">Transforming general theory into VAE-specific theory
@@ -422,7 +422,7 @@
     
     <h2 class="archive__item-title" itemprop="headline">
       
-        <a href="/vae-series/vae-code-experiments" rel="permalink">[DRAFT] Variational Autoencoder Code and Experiments
+        <a href="/vae-series/vae-code-experiments" rel="permalink">Variational Autoencoder Code and Experiments
 </a>
       
     </h2>
@@ -432,7 +432,7 @@
 
 
 
-  15 minute read
+  17 minute read
 </p>
     
     <p class="archive__item-excerpt" itemprop="description">Final connections between theory and lines of code
@@ -450,7 +450,7 @@
     
     <h2 class="archive__item-title" itemprop="headline">
       
-        <a href="/vae-series/variational-inference" rel="permalink">[DRAFT] Latent Variable Models, Expectation Maximization, and Variational Inference
+        <a href="/vae-series/variational-inference" rel="permalink">Latent Variable Models, Expectation Maximization, and Variational Inference
 </a>
       
     </h2>
@@ -460,7 +460,7 @@
 
 
 
-  6 minute read
+  7 minute read
 </p>
     
     <p class="archive__item-excerpt" itemprop="description">Introduction to the general theory of variational inference
@@ -478,7 +478,7 @@
     
     <h2 class="archive__item-title" itemprop="headline">
       
-        <a href="/vae-series/kl-divergence" rel="permalink">[DRAFT] A Quick Primer on KL Divergence
+        <a href="/vae-series/kl-divergence" rel="permalink">A Quick Primer on KL Divergence
 </a>
       
     </h2>
@@ -488,7 +488,7 @@
 
 
 
-  3 minute read
+  4 minute read
 </p>
     
     <p class="archive__item-excerpt" itemprop="description">Introductory discussion on KL divergence with an emphasis on building intuition from the mathematics

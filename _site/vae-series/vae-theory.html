@@ -9,7 +9,7 @@
   <head>
     <meta charset="utf-8">
 
-<!-- begin _includes/seo.html --><title>[DRAFT] Variational Autoencoder Theory - Adam Lineberry</title>
+<!-- begin _includes/seo.html --><title>Variational Autoencoder Theory - Adam Lineberry</title>
 <meta name="description" content="Transforming general theory into VAE-specific theory">
 
 
@@ -17,7 +17,7 @@
 <meta property="og:type" content="article">
 <meta property="og:locale" content="en_US">
 <meta property="og:site_name" content="Adam Lineberry">
-<meta property="og:title" content="[DRAFT] Variational Autoencoder Theory">
+<meta property="og:title" content="Variational Autoencoder Theory">
 <meta property="og:url" content="http://localhost:4000/vae-series/vae-theory">
 
 
@@ -29,7 +29,7 @@
 
 
 
-  <meta property="article:published_time" content="2019-05-28T00:00:00-06:00">
+  <meta property="article:published_time" content="2019-07-07T00:00:00-06:00">
 
 
 
@@ -160,7 +160,7 @@
       
 
       
-        <img src="/images/headshot.png" alt="Adam Lineberry" itemprop="image">
+        <img src="/images/headshot2.jpeg" alt="Adam Lineberry" itemprop="image">
       
     </div>
   
@@ -273,15 +273,15 @@
 
 
   <article class="page" itemscope itemtype="https://schema.org/CreativeWork">
-    <meta itemprop="headline" content="[DRAFT] Variational Autoencoder Theory">
+    <meta itemprop="headline" content="Variational Autoencoder Theory">
     <meta itemprop="description" content="Transforming general theory into VAE-specific theory">
-    <meta itemprop="datePublished" content="May 28, 2019">
+    <meta itemprop="datePublished" content="July 07, 2019">
     
 
     <div class="page__inner-wrap">
       
         <header>
-          <h1 id="page-title" class="page__title" itemprop="headline">[DRAFT] Variational Autoencoder Theory
+          <h1 id="page-title" class="page__title" itemprop="headline">Variational Autoencoder Theory
 </h1>
           
             <p class="page__meta"><i class="far fa-clock" aria-hidden="true"></i> 
@@ -289,7 +289,7 @@
 
 
 
-  12 minute read
+  13 minute read
 </p>
           
         </header>
@@ -297,21 +297,26 @@
 
       <section class="page__content" itemprop="text">
         
-        <p>Since the seminal paper was released in 2015 the Variational Autoencoder (VAE) has become extremely popular. It was one of the first model architectures in the mainstream to establish a strong connection between deep learning and Bayesian statistics. It’s also just really cool. You can synthesize new data with it and even interpret the latent dimensions it learns. A VAE trained on image data results in the ability to create spectacular visualizations of the latent factors it learns and the realistic images it can generate. In the world of data science it’s an excellent bridge between statistics and computer science. It’s fun to think about and tinker with, and it makes a great sandbox for curious minds to learn and build intuition about deep learning and statistics.</p>
+        <p class="notice--info">This is the third post in my series: <a href="http://localhost:4000/vae-series/">From KL Divergence to Variational Autoencoder in PyTorch</a>. The previous post in the series is <a href="http://localhost:4000/vae-series/variational-inference">Latent Variable Models, Expectation Maximization, and Variational Inference</a> and the next post is <a href="http://localhost:4000/vae-series/vae-code-experiments">Variational Autoencoder Code and Experiments</a>.</p>
+
+<hr />
+
+<p>The Variational Autoencoder has taken the machine learning community by storm since Kingma and Welling’s seminal paper was released in 2013<sup>1</sup>. It was one of the first model architectures in the mainstream to establish a strong connection between deep learning and Bayesian statistics. Quite frankly, it’s also just really cool. A VAE trained on image data results in the ability to create spectacular visualizations of the latent factors it learns and the realistic images it can generate. In the world of data science it’s an excellent bridge between statistics and computer science. It’s interesting to think about and tinker with, and it makes a great sandbox to learn and build intuition about deep learning and statistics.</p>
 
 <figure class="half" style="display:flex">
   <img src="http://localhost:4000/images/vae/datagen_final.png" height="100" />
   <img src="http://localhost:4000/images/vae/frey_face.png" height="100" />
-  <figcaption>(left) Synthesized digits from MNIST sampled from a grid on the learned latent manifold. Notice the smooth transitions between digits. (right) Synthesized faces sampled from a grid on the manifold of a VAE trained on Frey Face dataset<sup>1</sup>. Notice that the VAE has learned interpretable latent factors: left-to-right adjusts head orientation, top-to-bottom adjusts level of frowning or smiling. </figcaption>
+  <figcaption>(left) Synthesized digits from MNIST sampled from a grid on the learned latent manifold. Notice the smooth transitions between digits. (right) Synthesized faces sampled from a grid on the manifold of a VAE trained on the Frey Face dataset<sup>1</sup>. Notice that the VAE has learned interpretable latent factors: left-to-right adjusts head orientation, top-to-bottom adjusts level of frowning or smiling. </figcaption>
 </figure>
 
-<p>It isn’t just a playground though; there are extremely valuable use cases for the VAE on real world problems. It can be used for representation learning/feature engineering/dimensionality reduction to improve performance on downstream tasks such as classification models or recommender systems. You can also leverage its probabilistic nature to perform anomaly detection. Its data generation capability lends itself to assist in the training of reinforcement learning systems.</p>
+<p>It isn’t just a playground though; there are extremely valuable applications for the VAE on real world problems. It can be used for representation learning/feature engineering/dimensionality reduction to improve performance on downstream tasks such as classification models or recommender systems. You can also leverage its probabilistic nature to perform anomaly detection. Its data generation capability also lends itself to assist in the training of reinforcement learning systems.</p>
 
-<p>The VAE seems very similar to other autoencoders. At a high level, an autoencoder is a deep neural network that is trained to reconstruct its own input. There are many variations of this fundamental idea that accomplish different end tasks, such as the vanilla autoencoder, the denoising autoencoder, the sparse autoencoder, and yes, the variational autoencoder. But the VAE stands apart from the rest in that it is a fully probabilistic model.</p>
+<p>The VAE seems very similar to other autoencoders. At a high level, an autoencoder is a deep neural network that is trained to reconstruct its own input. There are many variations of this fundamental idea that accomplish different end tasks, such as the vanilla autoencoder, the denoising autoencoder, and the sparse autoencoder. But the VAE stands apart from the rest in that it is a fully probabilistic model.</p>
 
 <p>In this post we are going to introduce the theory of the VAE by building on concepts introduced in the previous post, such as variational inference and maximizing the Evidence Lower Bound (ELBO).</p>
 
-<p>Table of contents:</p>
+<div class="notice">
+<p><strong>Table of contents:</strong></p>
 <ol>
   <li>Derivation of the VAE objective function</li>
   <li>Intuition behind the VAE objective function</li>
@@ -319,6 +324,7 @@
   <li>Optimization</li>
   <li>Practical uses of the VAE</li>
 </ol>
+</div>
 
 <h2 id="derivation-of-the-vae-objective-function">Derivation of the VAE objective function</h2>
 
@@ -395,11 +401,11 @@ KL[q_{\phi}(z \lvert x) \lVert p_{\theta}(z)]</script>
 
 <h2 id="optimization">Optimization</h2>
 
-<p>Let’s first describe the overall flow and inner workings of this neural network. Data points <script type="math/tex">x_i</script> are fed into the encoder which produces vectors of means and variances defining a factorized Gaussian distribution at the center of the network. A latent variable <script type="math/tex">z_i</script> is then sampled from <script type="math/tex">q_{\phi}(z \lvert x_i)</script> and fed into the decoder. The decoder outputs another set of parameters defining <script type="math/tex">p_{\theta}(x_i \lvert z_i)</script> (as discussed previously, these parameters could be means and variances of another Gaussian, or the parameters of a multivariate Bernoulli). During training, the likelihood of the data point <script type="math/tex">x_i</script> under <script type="math/tex">p_{\theta}(x_i \lvert z_i)</script> can then be calculated using the Bernoulli PMF or Gaussian PDF, and maximized via gradient descent.</p>
+<p>Let’s first describe the overall flow and inner workings of this neural network. Data points <script type="math/tex">x_i</script> are fed into the encoder which produces vectors of means and variances defining a factorized Gaussian distribution at the center of the network. A latent variable <script type="math/tex">z_i</script> is then sampled from <script type="math/tex">q_{\phi}(z_i \lvert x_i)</script> and fed into the decoder. The decoder outputs another set of parameters defining <script type="math/tex">p_{\theta}(x_i \lvert z_i)</script> (as discussed previously, these parameters could be means and variances of another Gaussian, or the parameters of a multivariate Bernoulli). During training, the likelihood of the data point <script type="math/tex">x_i</script> under <script type="math/tex">p_{\theta}(x_i \lvert z_i)</script> can then be calculated using the Bernoulli PMF or Gaussian PDF, and maximized via gradient descent.</p>
 
 <p>In addition to maximizing the data likelihood, which corresponds to the first term in the objective function, the KL divergence between the encoder distribution <script type="math/tex">q_{\phi}(z \lvert x)</script> and the prior <script type="math/tex">p_{\theta}(z)</script> is also minimized. Thankfully, since we have chosen Gaussians for both the prior and the approximate posterior <script type="math/tex">q_{\phi}</script>, the KL divergence term has a closed form solution which we can plug into our favorite deep learning framework.</p>
 
-<p>Performing gradient descent on the first term also presents additional complications. For one, computing the actual expectation over <script type="math/tex">q_{\phi}</script> requires an intractable integral. This expectation can be approximated by sampling. The Monte Carlo approximation states that the expectation of a function can be approximated by the average value of the function across <script type="math/tex">N_s</script> samples from the distribution:</p>
+<p>Performing gradient descent on the first term also presents additional complications. For one, computing the actual expectation over <script type="math/tex">q_{\phi}</script> requires an intractable integral (i.e., computing <script type="math/tex">\log p_{\theta}(x \lvert z)</script> for all possible values of <script type="math/tex">z</script>). Instead, this expectation is approximated by Monte Carlo sampling. The Monte Carlo approximation states that the expectation of a function can be approximated by the average value of the function across <script type="math/tex">N_s</script> samples from the distribution:</p>
 
 <script type="math/tex; mode=display">\mathbb{E_{q_{\phi}(z \lvert x)}} \log p_{\theta}(x \lvert z) \approx
 \frac{1}{N_s}\sum_{s=1}^{N_s} \log p_{\theta}(x \lvert z_s)</script>
@@ -413,12 +419,12 @@ KL[q_{\phi}(z \lvert x) \lVert p_{\theta}(z)]</script>
 Diagram of the VAE without the reparameterization trick. Dashed arrows represent the sampling operation.
 </figcaption>
 
-<p>The neat solution to this is called the <em>reparameterization trick</em>, which moves the stochastic operation to an input layer and results in continuous linkage between the encoder and decoder allowing for backpropogation all the way through the encoder. Instead of sampling directly from the encoder <script type="math/tex">z_i \sim q_{\phi}(z \lvert x_i)</script>, we can represent <script type="math/tex">z</script> as a deterministic function of <script type="math/tex">x</script> and some noise <script type="math/tex">\epsilon</script>:</p>
+<p>The neat solution to this is called the <em>reparameterization trick</em>, which moves the stochastic operation to an input layer and results in continuous linkage between the encoder and decoder allowing for backpropogation all the way through the encoder. Instead of sampling directly from the encoder <script type="math/tex">z_i \sim q_{\phi}(z_i \lvert x_i)</script>, we can represent <script type="math/tex">z_i</script> as a deterministic function of <script type="math/tex">x_i</script> and some noise <script type="math/tex">\epsilon_i</script>:</p>
 
-<script type="math/tex; mode=display">z_i = g_{\phi}(x_i, \epsilon) = \mu_{\phi}(x) + diag(\sigma_{\phi}(x)) \cdot \epsilon \\
-\epsilon \sim \mathcal{N}(0, I)</script>
+<script type="math/tex; mode=display">z_i = g_{\phi}(x_i, \epsilon_i) = \mu_{\phi}(x_i) + diag(\sigma_{\phi}(x_i)) \cdot \epsilon_i \\
+\epsilon_i \sim \mathcal{N}(0, I)</script>
 
-<p>You can show that <script type="math/tex">z</script> defined in this way follows the distribution <script type="math/tex">q_{\phi}(z \lvert x_i)</script>.</p>
+<p>You can show that <script type="math/tex">z</script> defined in this way follows the distribution <script type="math/tex">q_{\phi}(z \lvert x)</script>.</p>
 
 <p><img src="http://localhost:4000/images/vae/architecture-with-reparam.png" alt="" width="550" class="align-center" /></p>
 <figcaption>
@@ -432,6 +438,12 @@ Diagram of the VAE with the reparameterization trick. Dashed arrows represent th
 <p>Another practical use is representation learning. It is certainly possible that using the latent representation of your data will improve performance of downstream tasks, such as clustering or classification. After training the VAE you can transform your data by passing it through the encoder and taking the most probable latent vectors <script type="math/tex">z</script> (which equates to taking the mean vector outputted from the encoder). Data outside of the training set can also be transformed by a previously-trained VAE. Of course, performance will be best when the new data is similar to the training data, i.e., comes from the same domain or natural distribution. As an extreme example, it probably wouldn’t make much sense to transform medical image data using a VAE that was trained on MNIST.</p>
 
 <p>Yet another use is anomaly detection. There are various ways to leverage the probabilistic nature of the VAE to determine when a new data point is very improbable and therefore anomalous. For example, you could pass the new data through the encoder and measure the KL divergence between the encoder’s distribution and the prior. A high KL divergence would indicate that the new data is dissimilar to the data the VAE saw during training.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In this post we introduced the VAE and showed how it is a modern extension of the same theory that motivates the classical expectation maximization algorithm. We also derived the VAE’s objective function and explained some of the intuition behind it.</p>
+
+<p>Some of the important details regarding the neural network architecture and optimization were discussed. We saw how the probabilistic encoder and probabilistic decoder are modeled as neural networks and how the reparameterization trick is used to allow for backpropogation through the entire network.</p>
 
 <p>To see the VAE in action, check out my <a href="http://localhost:4000/vae-series/vae-code-experiments">next post</a> which draws a strong connection between the theory presented here and actual PyTorch code and presents the results of several interesting experiments.</p>
 
@@ -479,7 +491,7 @@ Diagram of the VAE with the reparameterization trick. Dashed arrows represent th
 
 
         
-          <p class="page__date"><strong><i class="fas fa-fw fa-calendar-alt" aria-hidden="true"></i> Updated:</strong> <time datetime="2019-05-28T00:00:00-06:00">May 28, 2019</time></p>
+          <p class="page__date"><strong><i class="fas fa-fw fa-calendar-alt" aria-hidden="true"></i> Updated:</strong> <time datetime="2019-07-07T00:00:00-06:00">July 07, 2019</time></p>
         
       </footer>
 
@@ -488,7 +500,7 @@ Diagram of the VAE with the reparameterization trick. Dashed arrows represent th
     <h4 class="page__share-title">Share on</h4>
   
 
-  <a href="https://twitter.com/intent/tweet?text=%5BDRAFT%5D+Variational+Autoencoder+Theory%20http%3A%2F%2Flocalhost%3A4000%2Fvae-series%2Fvae-theory" class="btn btn--twitter" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Twitter"><i class="fab fa-fw fa-twitter" aria-hidden="true"></i><span> Twitter</span></a>
+  <a href="https://twitter.com/intent/tweet?text=Variational+Autoencoder+Theory%20http%3A%2F%2Flocalhost%3A4000%2Fvae-series%2Fvae-theory" class="btn btn--twitter" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Twitter"><i class="fab fa-fw fa-twitter" aria-hidden="true"></i><span> Twitter</span></a>
 
   <a href="https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Flocalhost%3A4000%2Fvae-series%2Fvae-theory" class="btn btn--facebook" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Facebook"><i class="fab fa-fw fa-facebook" aria-hidden="true"></i><span> Facebook</span></a>
 
@@ -499,11 +511,11 @@ Diagram of the VAE with the reparameterization trick. Dashed arrows represent th
       
   <nav class="pagination">
     
-      <a href="/vae-series/vae-code-experiments" class="pagination--pager" title="[DRAFT] Variational Autoencoder Code and Experiments
+      <a href="/vae-series/vae-code-experiments" class="pagination--pager" title="Variational Autoencoder Code and Experiments
 ">Previous</a>
     
     
-      <a href="/vae-series" class="pagination--pager" title="[DRAFT] Blog Post Series: From KL Divergence to Variational Autoencoder in PyTorch
+      <a href="/vae-series" class="pagination--pager" title="Blog Post Series: From KL Divergence to Variational Autoencoder in PyTorch
 ">Next</a>
     
   </nav>
@@ -528,7 +540,7 @@ Diagram of the VAE with the reparameterization trick. Dashed arrows represent th
     
     <h2 class="archive__item-title" itemprop="headline">
       
-        <a href="/vae-series" rel="permalink">[DRAFT] Blog Post Series: From KL Divergence to Variational Autoencoder in PyTorch
+        <a href="/vae-series" rel="permalink">Blog Post Series: From KL Divergence to Variational Autoencoder in PyTorch
 </a>
       
     </h2>
@@ -556,7 +568,7 @@ Diagram of the VAE with the reparameterization trick. Dashed arrows represent th
     
     <h2 class="archive__item-title" itemprop="headline">
       
-        <a href="/vae-series/vae-code-experiments" rel="permalink">[DRAFT] Variational Autoencoder Code and Experiments
+        <a href="/vae-series/vae-code-experiments" rel="permalink">Variational Autoencoder Code and Experiments
 </a>
       
     </h2>
@@ -566,7 +578,7 @@ Diagram of the VAE with the reparameterization trick. Dashed arrows represent th
 
 
 
-  15 minute read
+  17 minute read
 </p>
     
     <p class="archive__item-excerpt" itemprop="description">Final connections between theory and lines of code
@@ -584,7 +596,7 @@ Diagram of the VAE with the reparameterization trick. Dashed arrows represent th
     
     <h2 class="archive__item-title" itemprop="headline">
       
-        <a href="/vae-series/variational-inference" rel="permalink">[DRAFT] Latent Variable Models, Expectation Maximization, and Variational Inference
+        <a href="/vae-series/variational-inference" rel="permalink">Latent Variable Models, Expectation Maximization, and Variational Inference
 </a>
       
     </h2>
@@ -594,7 +606,7 @@ Diagram of the VAE with the reparameterization trick. Dashed arrows represent th
 
 
 
-  6 minute read
+  7 minute read
 </p>
     
     <p class="archive__item-excerpt" itemprop="description">Introduction to the general theory of variational inference
@@ -612,7 +624,7 @@ Diagram of the VAE with the reparameterization trick. Dashed arrows represent th
     
     <h2 class="archive__item-title" itemprop="headline">
       
-        <a href="/vae-series/kl-divergence" rel="permalink">[DRAFT] A Quick Primer on KL Divergence
+        <a href="/vae-series/kl-divergence" rel="permalink">A Quick Primer on KL Divergence
 </a>
       
     </h2>
@@ -622,7 +634,7 @@ Diagram of the VAE with the reparameterization trick. Dashed arrows represent th
 
 
 
-  3 minute read
+  4 minute read
 </p>
     
     <p class="archive__item-excerpt" itemprop="description">Introductory discussion on KL divergence with an emphasis on building intuition from the mathematics

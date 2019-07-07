@@ -9,7 +9,7 @@
   <head>
     <meta charset="utf-8">
 
-<!-- begin _includes/seo.html --><title>[DRAFT] Latent Variable Models, Expectation Maximization, and Variational Inference - Adam Lineberry</title>
+<!-- begin _includes/seo.html --><title>Latent Variable Models, Expectation Maximization, and Variational Inference - Adam Lineberry</title>
 <meta name="description" content="Introduction to the general theory of variational inference">
 
 
@@ -17,7 +17,7 @@
 <meta property="og:type" content="article">
 <meta property="og:locale" content="en_US">
 <meta property="og:site_name" content="Adam Lineberry">
-<meta property="og:title" content="[DRAFT] Latent Variable Models, Expectation Maximization, and Variational Inference">
+<meta property="og:title" content="Latent Variable Models, Expectation Maximization, and Variational Inference">
 <meta property="og:url" content="http://localhost:4000/vae-series/variational-inference">
 
 
@@ -29,7 +29,7 @@
 
 
 
-  <meta property="article:published_time" content="2019-05-20T00:00:00-06:00">
+  <meta property="article:published_time" content="2019-07-07T00:00:00-06:00">
 
 
 
@@ -160,7 +160,7 @@
       
 
       
-        <img src="/images/headshot.png" alt="Adam Lineberry" itemprop="image">
+        <img src="/images/headshot2.jpeg" alt="Adam Lineberry" itemprop="image">
       
     </div>
   
@@ -273,15 +273,15 @@
 
 
   <article class="page" itemscope itemtype="https://schema.org/CreativeWork">
-    <meta itemprop="headline" content="[DRAFT] Latent Variable Models, Expectation Maximization, and Variational Inference">
+    <meta itemprop="headline" content="Latent Variable Models, Expectation Maximization, and Variational Inference">
     <meta itemprop="description" content="Introduction to the general theory of variational inference">
-    <meta itemprop="datePublished" content="May 20, 2019">
+    <meta itemprop="datePublished" content="July 07, 2019">
     
 
     <div class="page__inner-wrap">
       
         <header>
-          <h1 id="page-title" class="page__title" itemprop="headline">[DRAFT] Latent Variable Models, Expectation Maximization, and Variational Inference
+          <h1 id="page-title" class="page__title" itemprop="headline">Latent Variable Models, Expectation Maximization, and Variational Inference
 </h1>
           
             <p class="page__meta"><i class="far fa-clock" aria-hidden="true"></i> 
@@ -289,7 +289,7 @@
 
 
 
-  6 minute read
+  7 minute read
 </p>
           
         </header>
@@ -297,7 +297,11 @@
 
       <section class="page__content" itemprop="text">
         
-        <p>Latent variable models are a powerful form of unsupervised machine learning used for a variety of tasks such as clustering, dimensionality reduction, data generation, and topic modeling. The basic premise is that there is some latent and unobserved variable <script type="math/tex">z_{i}</script> that causes the observed data <script type="math/tex">x_{i}</script>. The graphical model (or Bayesian network) representing this paradigm is as follows:</p>
+        <p class="notice--info">This is the second post in my series: <a href="http://localhost:4000/vae-series/">From KL Divergence to Variational Autoencoder in PyTorch</a>. The previous post in the series is <a href="http://localhost:4000/vae-series/kl-divergence">A Quick Primer on KL Divergence</a> and the next post is <a href="http://localhost:4000/vae-series/vae-theory">Variational Autoencoder Theory</a>.</p>
+
+<hr />
+
+<p>Latent variable models are a powerful form of [typically unsupervised] machine learning used for a variety of tasks such as clustering, dimensionality reduction, data generation, and topic modeling. The basic premise is that there is some latent and unobserved variable <script type="math/tex">z_{i}</script> that causes the observed data point <script type="math/tex">x_{i}</script>. Here is the graphical model (or Bayesian network) representation:</p>
 
 <p><img src="http://localhost:4000/images/vae/graphical-model.png" alt="" width="200" class="align-center" /></p>
 
@@ -309,29 +313,29 @@
 
 <script type="math/tex; mode=display">p_{\theta}(x) = \int p_{\theta}(x \lvert z)p_{\theta}(z)dz</script>
 
-<p>The introduction of latent variables allow us to more accurately model the data and discover valuable insights from the latent variables themselves. In the topic modeling case we know beforehand that each document in a coprous tends to have a focus on a particular topic or subset of topics. For example, articles in a newspaper typically address topics such as politics, business, or sports. Real world corpora encounted in industry can be more complex and ambiguous, such as customer support transcripts, product reviews, or legal contracts. By structuring a model to incorporate this knowledge we are able to more accurately calculate the probability of a document, and perhaps more importantly, discover the topics being discussed in a corpus and provide topic assignment to individual documents.</p>
+<p>The introduction of latent variables allow us to more accurately model the data and discover valuable insights from the latent variables themselves. In the topic modeling case we know beforehand that each document in a corpus tends to have a focus on a particular topic or subset of topics. For example, articles in a newspaper typically address topics such as politics, business, or sports. Real world corpora encountered in industry, such as customer support transcripts, product reviews, or legal contracts, can be more complex and ambiguous but the concept still applies. By structuring a model to incorporate this knowledge we are able to more accurately calculate the probability of a document, and perhaps more importantly, discover the topics being discussed in a corpus and provide topic assignment to individual documents.</p>
 
-<p>Learning probability distributions such as <script type="math/tex">p_{\theta}(x)</script>, <script type="math/tex">p_{\theta}(z \lvert x)</script>, and <script type="math/tex">p_{\theta}(x \lvert z)</script> can be used for tasks like anomaly detection or data generation. More commonly though, the identification of the latent variables themselves are the main contribution of latent variable models. In the Gaussian mixture model (GMM) the latent variables are the cluster assignments. In latent Dirichlet allocation (LDA) the latent variables are the topic assignments. In the variational autoencoder (VAE) the latent variables are the compressed representations of that data.</p>
+<p>The learned probability distributions such as <script type="math/tex">p_{\theta}(x)</script>, <script type="math/tex">p_{\theta}(z \lvert x)</script>, and <script type="math/tex">p_{\theta}(x \lvert z)</script> can be used directly for tasks like anomaly detection or data generation. More commonly though, the main contribution is inference of the latent variables themselves from these distributions. In the Gaussian mixture model (GMM) the latent variables are the cluster assignments. In latent Dirichlet allocation (LDA) the latent variables are the topic assignments. In the variational autoencoder (VAE) the latent variables are the compressed representations of that data.</p>
 
 <h2 id="marginal-likelihood-training">Marginal likelihood training</h2>
 
-<p>Latent variable models are trained by maximizing the marginal likelihood. Since the logarithm is a monotonically increasing function, the marginal log likelihood is maximized instead since the logarithm simplifies the computation.</p>
+<p>Latent variable models are trained by maximizing the marginal likelihood of the observed data under the model parameters <script type="math/tex">\theta</script>. Since the logarithm is a monotonically increasing function, the marginal log likelihood is maximized instead since the logarithm simplifies the computation.</p>
 
 <script type="math/tex; mode=display">\theta = \underset{\theta}{\mathrm{argmax}}\ p_{\theta}(x) = \underset{\theta}{\mathrm{argmax}}\ \log p_{\theta}(x)</script>
 
-<p>Given a training dataset <script type="math/tex">D</script> composed of <script type="math/tex">N</script> data points <script type="math/tex">x_i</script>, <script type="math/tex">D = \{x_1, x_2, \ldots, x_N\}</script> where each <script type="math/tex">x_i \in \Bbb R^d</script>, the marginal log likelihood is expressed as</p>
+<p>Given a training dataset <script type="math/tex">X</script> consisting of <script type="math/tex">N</script> data points <script type="math/tex">\{x_1, x_2, \dots, x_N\}</script>, the marginal log likelihood is expressed as</p>
 
 <script type="math/tex; mode=display">% <![CDATA[
 \begin{align}
-\log p_{\theta}(x) &= \log \prod_{i=1}^{N} p_{\theta}(x_i) \tag{1} \\
+\log p_{\theta}(X) &= \log \prod_{i=1}^{N} p_{\theta}(x_i) \tag{1} \\
 &= \sum_{i=1}^{N} \log p_{\theta}(x_{i}) \\
-&= \sum_{i=1}^{N} \log \int p_{\theta}(x_i, z)dz \\
-&= \sum_{i=1}^{N} \log \int p_{\theta}(x_i \lvert z)p_{\theta}(z)dz
+&= \sum_{i=1}^{N} \log \int p_{\theta}(x_i, z_i)dz \\
+&= \sum_{i=1}^{N} \log \int p_{\theta}(x_i \lvert z_i)p_{\theta}(z_i)dz
 \end{align} %]]></script>
 
 <p>Ideally we would maximize this expression directly, but the integral is typically intractable. For example, if <script type="math/tex">z</script> is high dimensional, the integral takes the form <script type="math/tex">\int\int\int\dots\int</script>.</p>
 
-<p>As previously discussed, another requirement for latent variable models to be useful is the the ability to calculate the posterior of the latent variables.</p>
+<p>As previously discussed, we must also be able to compute the posterior of the latent variables in order to gain utility from these models:</p>
 
 <script type="math/tex; mode=display">p_{\theta}(z \lvert x) = \frac{p_{\theta}(x \lvert z)p_{\theta}(z)}{p_{\theta}(x)}</script>
 
@@ -339,7 +343,9 @@
 
 <h2 id="derivation-of-variational-lower-bound">Derivation of Variational Lower Bound</h2>
 
-<p>To start, let’s assume that the posterior <script type="math/tex">p_{\theta}(z \lvert x)</script> is intractable. To deal with this we will consider another distribution <script type="math/tex">q_{\phi}(z)</script>. We would like <script type="math/tex">q_{\phi}(z)</script> to closely approximate <script type="math/tex">p_{\theta}(z \lvert x)</script> and we are free to choose any form we like for <script type="math/tex">q</script>. For example, we could choose <script type="math/tex">q</script> to be static or conditional on <script type="math/tex">x</script> in some way (as you might guess, <script type="math/tex">q</script> <strong>is</strong> typically conditioned on <script type="math/tex">x</script>). A good approximation can be seen as one that minimizes the KL divergence (for a primer on KL divergence, see <a href="http://localhost:4000/vae-series/kl-divergence">this post</a>):</p>
+<p>To start, let’s assume that the posterior <script type="math/tex">p_{\theta}(z \lvert x)</script> is intractable. To deal with this we will introduce a new distribution <script type="math/tex">q_{\phi}(z)</script>. We would like <script type="math/tex">q_{\phi}(z)</script> to closely approximate <script type="math/tex">p_{\theta}(z \lvert x)</script> and we are free to choose any form we like for <script type="math/tex">q</script>. For example, we could choose <script type="math/tex">q</script> to be static or conditional on <script type="math/tex">x</script> in some way (as you might guess, <script type="math/tex">q</script> <strong>is</strong> typically conditioned on <script type="math/tex">x</script>). A good approximation can be seen as one that minimizes the KL divergence between the distributions (for a primer on KL divergence, see <a href="http://localhost:4000/vae-series/kl-divergence">this post</a>):</p>
+
+<p class="notice">Note: For simplicity I will be using summations instead of integrals in the derivation.</p>
 
 <script type="math/tex; mode=display">KL[q_{\phi}(z) \lVert p_{\theta}(z \lvert x)] =
 -\underset{z}{\sum} q_{\phi}(z) \log \frac{p_{\theta}(z \lvert x)}{q_{\phi}(z)}</script>
@@ -353,7 +359,7 @@
 &= -\underset{z}{\sum} q_{\phi}(z) \log \frac{p_{\theta}(x,z)}{q_{\phi}(z)} + \underset{z}{\sum} q_{\phi}(z) \log p_{\theta}(x)
 \end{align} %]]></script>
 
-<p>Note that in the second term, <script type="math/tex">\underset{z}{\sum} q(z) \log p(x)</script>, <script type="math/tex">\log p(x)</script> is constant w.r.t. the summation so it can be moved outside, leaving <script type="math/tex">\log p(x) \underset{z}{\sum} q(z)</script>. By definition of a probability distribution, <script type="math/tex">\underset{z}{\sum} q(z) = 1</script>, so the term ultimately simplifies to <script type="math/tex">\log p(x)</script>. So, we are left with:</p>
+<p>Note that in the second term, <script type="math/tex">\underset{z}{\sum} q_{\phi}(z) \log p_{\theta}(x)</script>, <script type="math/tex">\log p_{\theta}(x)</script> is constant w.r.t. the summation so it can be moved outside, leaving <script type="math/tex">\log p_{\theta}(x) \underset{z}{\sum} q_{\phi}(z)</script>. By definition of a probability distribution, <script type="math/tex">\underset{z}{\sum} q_{\phi}(z) = 1</script>, so the term ultimately simplifies to <script type="math/tex">\log p_{\theta}(x)</script>. So, we are left with:</p>
 
 <script type="math/tex; mode=display">KL[q_{\phi}(z) \lVert p_{\theta}(z \lvert x)] =
 -\underset{z}{\sum} q_{\phi}(z) \log \frac{p_{\theta}(x,z)}{q_{\phi}(z)} + \log p_{\theta}(x)</script>
@@ -370,15 +376,13 @@
 &= \mathbb{E_{q_{\phi}(z)}} \log \frac{p_{\theta}(x,z)}{q_{\phi}(z)}
 \end{align} %]]></script>
 
-<p>Since <script type="math/tex">KL[q \lVert p] \geq 0\ \forall q, p</script>, it is immediate that <script type="math/tex">\mathcal{L}</script> is indeed a lower bound for the marginal log likelihood: <script type="math/tex">\mathcal{L} \leq \log p_{\theta}(x)</script>. Variational inference methods focus on the tractable task of maximizing the ELBO instead of maximizing the likelihood directly.</p>
+<p>Looking at Eq. 2 and noting that KL divergence is non-negative, you can see that <script type="math/tex">\mathcal{L}</script> must be lower bound for the marginal log likelihood: <script type="math/tex">\mathcal{L} \leq \log p_{\theta}(x)</script>. Variational inference methods focus on the tractable task of maximizing the ELBO instead of maximizing the likelihood directly.</p>
 
-<h2 id="optimization-methods">Optimization methods</h2>
+<h2 id="expectation-maximization">Expectation Maximization</h2>
 
-<p>Most optimization methods involve some kind of iterative updating procedure where <script type="math/tex">\mathcal{L}</script> is maximized w.r.t. <script type="math/tex">\phi</script> and then w.r.t. <script type="math/tex">\theta</script>.</p>
+<p>In the simplest case, when <script type="math/tex">p_{\theta}(z \lvert x)</script> is tractable (e.g., GMMs), the expectation maximization (EM) algorithm can be applied. First, parameters <script type="math/tex">\theta</script> are randomly initialized. EM then exploits the tractable posterior by holding <script type="math/tex">\theta</script> fixed and updating <script type="math/tex">\phi</script> by simply setting <script type="math/tex">q_{\phi}(z) = p_{\theta}(z \lvert x)</script> in the <em>E-step</em>.</p>
 
-<h3 id="expectation-maximization">Expectation Maximization</h3>
-
-<p>In the simplest case, when <script type="math/tex">p_{\theta}(z \lvert x)</script> is tractable (e.g., GMMs), the expectation maximization (EM) algorithm can be applied. First, parameters <script type="math/tex">\theta</script> are randomly initialized. EM then exploits the tractable posterior by holding <script type="math/tex">\theta</script> fixed and updating <script type="math/tex">\phi</script> by simply setting <script type="math/tex">q_{\phi}(z) = p_{\theta}(z \lvert x)</script> in the <em>E-step</em>. Notice that since we are holding <script type="math/tex">\theta</script> fixed, the left hand side of Eq. 2 is a constant during this step, and the update to <script type="math/tex">\phi</script> sets the KL term to zero. This means the ELBO term is equal to the log likelihood, which is the best possible optimization step. It’s interesting because, in this interpretation, the EM algorithm does not bother with the ELBO directly in the E-step and instead maximizes it indirectly by minimizing the KL term.</p>
+<p>Notice that since we are holding <script type="math/tex">\theta</script> fixed, the left hand side of Eq. 2 is a constant during this step, and the update to <script type="math/tex">\phi</script> sets the KL term to zero. This means the ELBO term is equal to the log likelihood, which is the best possible optimization step. It’s interesting because, in this interpretation, the EM algorithm does not bother with the ELBO directly in the E-step and instead maximizes it indirectly by minimizing the KL term.</p>
 
 <p>In the <em>M-step</em>, <script type="math/tex">\phi</script> is fixed and <script type="math/tex">\theta</script> is updated by maximizing the ELBO. Isolating the terms that depend on <script type="math/tex">\theta</script></p>
 
@@ -389,15 +393,19 @@
 &= \mathbb{E_{q_{\phi}(z)}} \log p_{\theta}(x,z) - \mathbb{E_{q_{\phi}(z)}} \log q_{\phi}(z)
 \end{align} %]]></script>
 
-<p>Since the second term does not depend on <script type="math/tex">\theta</script>, we see that the M-step is simply maximizing the expected joint likelihood of the data</p>
+<p>Since the second term does not depend on <script type="math/tex">\theta</script>, we see that the M-step is maximizing the expected joint likelihood of the data</p>
 
 <script type="math/tex; mode=display">\theta = \underset{\theta}{\mathrm{argmax}}\ \mathbb{E_{q_{\phi}(z)}} \log p_{\theta}(x,z)</script>
 
-<p>EM is guaranteed to converge to a local maximum or a saddle point of the marginal likelihood.</p>
+<p>Although I won’t prove it here, EM has some nice convergence guarantees; it always converges to a local maximum or a saddle point of the marginal likelihood.</p>
 
-<h3 id="other-methods">Other methods</h3>
+<h2 id="conclusion">Conclusion</h2>
 
-<p>There are plenty of cases where the posterior <script type="math/tex">p_{\theta}(z \lvert x)</script> is not tractable. A more recent approach to solving this problem is to use deep neural networks to jointly learn <script type="math/tex">q_{\phi}(z \lvert x)</script> and <script type="math/tex">p_{\theta}(x \lvert z)</script> with an ELBO loss function, such as in the variational autoencoder. For more on this see my <a href="http://localhost:4000/vae-series/vae-theory">post on variational autoencoder theory</a>, where we will further refine the theory presented here to form the basis for the variational autoencoder.</p>
+<p>In this post we introduced latent variable models provided some insight on their utility in real-world scenarios. Maximum likelihood training is typically intractable so we derived the variational lower bound (or ELBO) which is maximized instead.</p>
+
+<p>In the simplest case, when <script type="math/tex">p_{\theta}(z \lvert x)</script> is tractable (e.g., GMMs), we showed how the expectation maximization algorithm can be applied.</p>
+
+<p>However, there are plenty of cases where the posterior <script type="math/tex">p_{\theta}(z \lvert x)</script> is not tractable. A more recent approach to solving this problem is to use deep neural networks to jointly learn <script type="math/tex">q_{\phi}(z \lvert x)</script> and <script type="math/tex">p_{\theta}(x \lvert z)</script> with an ELBO loss function, such as in the variational autoencoder. For more on this see my <a href="http://localhost:4000/vae-series/vae-theory">post on variational autoencoder theory</a>, where we will further refine the theory presented here to form the basis for the variational autoencoder.</p>
 
 <h2 id="resources">Resources</h2>
 
@@ -435,7 +443,7 @@
 
 
         
-          <p class="page__date"><strong><i class="fas fa-fw fa-calendar-alt" aria-hidden="true"></i> Updated:</strong> <time datetime="2019-05-20T00:00:00-06:00">May 20, 2019</time></p>
+          <p class="page__date"><strong><i class="fas fa-fw fa-calendar-alt" aria-hidden="true"></i> Updated:</strong> <time datetime="2019-07-07T00:00:00-06:00">July 07, 2019</time></p>
         
       </footer>
 
@@ -444,7 +452,7 @@
     <h4 class="page__share-title">Share on</h4>
   
 
-  <a href="https://twitter.com/intent/tweet?text=%5BDRAFT%5D+Latent+Variable+Models%2C+Expectation+Maximization%2C+and+Variational+Inference%20http%3A%2F%2Flocalhost%3A4000%2Fvae-series%2Fvariational-inference" class="btn btn--twitter" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Twitter"><i class="fab fa-fw fa-twitter" aria-hidden="true"></i><span> Twitter</span></a>
+  <a href="https://twitter.com/intent/tweet?text=Latent+Variable+Models%2C+Expectation+Maximization%2C+and+Variational+Inference%20http%3A%2F%2Flocalhost%3A4000%2Fvae-series%2Fvariational-inference" class="btn btn--twitter" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Twitter"><i class="fab fa-fw fa-twitter" aria-hidden="true"></i><span> Twitter</span></a>
 
   <a href="https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Flocalhost%3A4000%2Fvae-series%2Fvariational-inference" class="btn btn--facebook" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Facebook"><i class="fab fa-fw fa-facebook" aria-hidden="true"></i><span> Facebook</span></a>
 
@@ -455,11 +463,11 @@
       
   <nav class="pagination">
     
-      <a href="/vae-series/kl-divergence" class="pagination--pager" title="[DRAFT] A Quick Primer on KL Divergence
+      <a href="/vae-series/kl-divergence" class="pagination--pager" title="A Quick Primer on KL Divergence
 ">Previous</a>
     
     
-      <a href="/vae-series/vae-code-experiments" class="pagination--pager" title="[DRAFT] Variational Autoencoder Code and Experiments
+      <a href="/vae-series/vae-code-experiments" class="pagination--pager" title="Variational Autoencoder Code and Experiments
 ">Next</a>
     
   </nav>
@@ -484,7 +492,7 @@
     
     <h2 class="archive__item-title" itemprop="headline">
       
-        <a href="/vae-series" rel="permalink">[DRAFT] Blog Post Series: From KL Divergence to Variational Autoencoder in PyTorch
+        <a href="/vae-series" rel="permalink">Blog Post Series: From KL Divergence to Variational Autoencoder in PyTorch
 </a>
       
     </h2>
@@ -512,7 +520,7 @@
     
     <h2 class="archive__item-title" itemprop="headline">
       
-        <a href="/vae-series/vae-theory" rel="permalink">[DRAFT] Variational Autoencoder Theory
+        <a href="/vae-series/vae-theory" rel="permalink">Variational Autoencoder Theory
 </a>
       
     </h2>
@@ -522,7 +530,7 @@
 
 
 
-  14 minute read
+  15 minute read
 </p>
     
     <p class="archive__item-excerpt" itemprop="description">Transforming general theory into VAE-specific theory
@@ -540,7 +548,7 @@
     
     <h2 class="archive__item-title" itemprop="headline">
       
-        <a href="/vae-series/vae-code-experiments" rel="permalink">[DRAFT] Variational Autoencoder Code and Experiments
+        <a href="/vae-series/vae-code-experiments" rel="permalink">Variational Autoencoder Code and Experiments
 </a>
       
     </h2>
@@ -550,7 +558,7 @@
 
 
 
-  17 minute read
+  19 minute read
 </p>
     
     <p class="archive__item-excerpt" itemprop="description">Final connections between theory and lines of code
@@ -568,7 +576,7 @@
     
     <h2 class="archive__item-title" itemprop="headline">
       
-        <a href="/vae-series/kl-divergence" rel="permalink">[DRAFT] A Quick Primer on KL Divergence
+        <a href="/vae-series/kl-divergence" rel="permalink">A Quick Primer on KL Divergence
 </a>
       
     </h2>
@@ -578,7 +586,7 @@
 
 
 
-  3 minute read
+  4 minute read
 </p>
     
     <p class="archive__item-excerpt" itemprop="description">Introductory discussion on KL divergence with an emphasis on building intuition from the mathematics

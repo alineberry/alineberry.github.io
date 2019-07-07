@@ -1,11 +1,16 @@
 ---
-title: "[DRAFT] Variational Autoencoder Code and Experiments"
-date: 2019-05-28
+title: "Variational Autoencoder Code and Experiments"
+date: 2019-07-07
 tags: [machine learning]
 excerpt: "Final connections between theory and lines of code"
 mathjax: true
 author_profile: true
 permalink: /vae-series/vae-code-experiments
+---
+
+This is the fourth and final post in my series: [From KL Divergence to Variational Autoencoder in PyTorch]({{ site.url }}{{ site.baseurl }}/vae-series/). The previous post in the series is [Variational Autoencoder Theory]({{ site.url }}{{ site.baseurl }}/vae-series/vae-theory).
+{: .notice--info}
+
 ---
 
 In this post we will build and train a variational autoencoder (VAE) in PyTorch, tying everything back to the theory derived in my [post on VAE theory]({{ site.url }}{{ site.baseurl }}/vae-series/vae-theory). The first half of the post provides discussion on the key points in the implementation. The second half provides the code itself along with some annotations.
@@ -44,7 +49,7 @@ $$\mathbb{E_{q_{\phi}(z \lvert x)}} \log p_{\theta}(x \lvert z)$$
 
 Since the data is binary in this experiment, we will construct $$p_{\theta}(x \lvert z)$$ to model a multivariate factorized Bernoulli distribution. (Note, the distribution chosen to model the reconstruction is dataset-specific. If you have continuous data then a factorized Gaussian may be more appropriate.) This means that, for each data point, we view the 784 binary pixels values as independent Bernoulli observations. As such, the decoder network will output 784 Bernoulli parameters. The Bernoulli parameter is the probability of success in a binary outcome trial $$p \in [0, 1]$$ (e.g., the probability of heads when flipping a biased coin).
 
-Let's take the $$j^{th}$$ pixel of the $$i^{th}$$ image as an example and call it $$x_{ij}$$. Since we're dealing with binary pixel values, $$x_{ij} \in \{0,1\}$$ can be interpreted as the result of a Bernoulli trial. The model's output for this pixel will be the Bernoulli parameter corresponding to that pixel and let's call that specific output $$p_{ij} \in [0,1]$$. The likelihood of the data for that pixel $$p_{\theta}(x_{ij} \lvert z_i)$$ is then given by the Bernoulli PMF:
+Let's take the $$j^{th}$$ pixel of the $$i^{th}$$ image as an example and call it $$x_{ij}$$. Since we're dealing with binary pixel values, $$x_{ij} \in \{0,1\}$$ can be interpreted as the result of a Bernoulli trial. The model's output will be the Bernoulli parameter corresponding to that pixel; let's call that specific output $$p_{ij} \in [0,1]$$. The likelihood of that pixel $$p_{\theta}(x_{ij} \lvert z_i)$$ is then given by the Bernoulli PMF:
 
 $$
 p_{ij}^{x_{ij}}(1-p_{ij})^{1-x_{ij}}
@@ -56,21 +61,21 @@ $$
 x_{ij} \log p_{ij} + (1-x_{ij}) \log (1-p_{ij})
 $$
 
-This equation may be familiar to some. The negative of it is commonly known as the binary cross entropy and is implemented in PyTorch by [`torch.nn.BCELoss`](https://pytorch.org/docs/stable/nn.html?highlight=binary_cross_entropy#torch.nn.BCELoss).
+This equation may look familiar. The negative of it is commonly known as binary cross entropy and is implemented in PyTorch by [`torch.nn.BCELoss`](https://pytorch.org/docs/stable/nn.html?highlight=binary_cross_entropy#torch.nn.BCELoss).
 
 Now, the log likelihood of the full data point $$x_i$$ is given by
 
 $$
 \begin{align}
-log_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert z_i) \\
+\log p_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert z_i) \\
 &= \sum_{j=1}^{784} \log p_{\theta}(x_{ij} \lvert z_i) \\
 &= \sum_{j=1}^{784} \bigg[ x_{ij} \log p_{ij} + (1-x_{ij}) \log (1-p_{ij}) \bigg]
 \end{align}
 $$
 
-In PyTorch the final expression is implemented by [`torch.nn.functional.binary_cross_entropy`](https://pytorch.org/docs/stable/nn.html#binary-cross-entropy) with `reduction='sum'`. Since we are training in minibatches, we want the sum of log probabilities for all pixels in that minibatch. This is accomplished by simply passing full batches through the same function call. You can think of the operation performed as first summing the 784 values for each datapoint. Then, in a second aggregation step, it will sum over the batch.
+In PyTorch the final expression is implemented by [`torch.nn.functional.binary_cross_entropy`](https://pytorch.org/docs/stable/nn.html#binary-cross-entropy) with `reduction='sum'`. Since we are training in minibatches, we want the sum of log probabilities for all pixels in that minibatch. This is accomplished by simply passing full batches through the same function call. You can think of the operation performed as first summing the 784 values for each datapoint and then summing over data points in the batch. In reality, a `(batch_size, 784)` size tensor of cross entropy values will be computed and then summed over all axes.
 
-The expectation of the log likelihood over $$q_{\phi}(z \lvert x)$$ is satisfied by simply sampling one point from $$q_{\phi}(z \lvert x)$$ and passing it through the decoder. Note that there are no additional complexities here; this is the same basic forward pass. As discussed in the previous post, this is the Monte Carlo approximation of the expected value of a function.
+The expectation of the log likelihood over $$q_{\phi}(z \lvert x)$$ is satisfied by simply sampling one point from $$q_{\phi}(z \lvert x)$$ and passing it through the decoder. Note that there are no additional complexities here; this is a basic forward pass. As discussed in the previous post, this is the Monte Carlo approximation of the expected value of a function.
 
 ### Second term (KL divergence, regularization)
 
@@ -88,7 +93,7 @@ $$
 
 Where $$J$$ is the size of the latent space (number of dimensions), and $$\mu$$ and $$\sigma^2$$ are the mean and variance vectors output from the probabilistic encoder.
 
-In order to compute this, the forward pass of the network must also return mean and variance vectors output from the encoder, not just the reconstruction portion. In other words, it must return the outputs from both the encoder and the decoder.
+In order to compute this, the forward pass of the network must also return mean and variance vectors output from the encoder, not just the reconstruction portion. In other words, the full model must return the outputs from both the encoder and the decoder.
 
 The KL term can be computed across a minibatch with the following:
 
@@ -96,7 +101,7 @@ The KL term can be computed across a minibatch with the following:
 -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 ```
 
-Where `mu` and `logvar` are tensors of means and log variances across the minibatch, respectively. Both of these tensors will have shape `(batch_size, latent_space_size)`.
+Where `mu` and `logvar` are tensors of means and log variances across the minibatch, respectively. Both of these tensors will have size `(batch_size, latent_space_size)`.
 
 ### Putting the terms together
 
@@ -104,7 +109,12 @@ In the following implementation, the binary cross entropy (BCE) and the KL diver
 
 ## Sampling from the encoder
 
-A key step in the flow of the VAE is sampling a data point from the encoder $$q_{\phi}(z \lvert x)$$. The reparameterization trick is used to perform this sampling without introducing a discontinuity in the network (as discussed in the previous post).
+A key step in the flow of the VAE is sampling a data point from the encoder $$q_{\phi}(z_i \lvert x_i)$$. The reparameterization trick is used to perform this sampling without introducing a discontinuity in the network (as discussed in the previous post).
+
+$$
+z_i = g_{\phi}(x_i, \epsilon_i) = \mu_{\phi}(x_i) + diag(\sigma_{\phi}(x_i)) \cdot \epsilon_i \\
+\epsilon_i \sim \mathcal{N}(0, I)
+$$
 
 In the forward pass, the vector of means and log variances are collected from the encoder. These vectors are used to generate a data sample as such
 
@@ -115,13 +125,6 @@ def reparameterize(self, mu, logvar):
   return mu + eps*std
 ```
 
-This code above implements
-
-$$
-z_i = g_{\phi}(x_i, \epsilon) = \mu_{\phi}(x) + diag(s_{\phi}(x)) \cdot \epsilon \\
-\epsilon \sim \mathcal{N}(0, I)
-$$
-
 ## Experiment results
 
 ### Data generation
@@ -129,6 +132,8 @@ $$
 At various points during training, I sampled a grid of points from the latent space. The points are linearly spaced coordinates on the unit square, transformed through the inverse Gaussian CDF. This results in a grid of points with evenly spaced quantiles of the Gaussian. In plain English (sort of), this means slicing the Gaussian into equal sized chunks.
 
 ```python
+from scipy.stats import norm
+n = 20
 self.grid_x = norm.ppf(np.linspace(0.05, 0.95, n))
 self.grid_y = norm.ppf(np.linspace(0.05, 0.95, n))
 ```
@@ -142,8 +147,12 @@ Animation throughout the entire training process:
 Animation for just the early stages of training:
 <img src="{{ site.url }}{{ site.baseurl }}/images/vae/datagen_tracking_early.gif" alt="" width="500">{: .align-center}
 
-The final state of the learned manifold and data generation after training has completed:
+The final state of the learned manifold after training has completed:
 <img src="{{ site.url }}{{ site.baseurl }}/images/vae/datagen_final.png" width="500">{: .align-center}
+
+As you can see, there are regions dedicated to individual digits with smooth transitions in between. I tried hand drawing the boundaries between digits to aid the visualization:
+<img src="{{ site.url }}{{ site.baseurl }}/images/vae/datagen_final_handdrawn_partitions.png" width="500">{: .align-center}
+
 
 ### Data reconstruction
 
@@ -157,7 +166,7 @@ The following animation shows how the model's ability to reconstruct data improv
 
 ### Anomaly detection
 
-Anomalous data can be detected by leveraging the probabilistic nature of the VAE. One (of many) ways to detect anomalies is to measure the KL divergence between the encoder distribution $$q_{\phi}(z \lvert x)$$ and the prior $$p_{\theta}(z)$$ and compare it to the average across the training (or test) set.
+Anomalous data can be detected by leveraging the probabilistic nature of the VAE. One way to detect anomalies is to measure the KL divergence between the encoder distribution $$q_{\phi}(z_i \lvert x_i)$$ and the prior $$p_{\theta}(z)$$ and compare it to the average across the training (or test) set.
 
 I computed this KL divergence for every point in the training set and plotted the resulting distribution:
 
@@ -171,7 +180,7 @@ And calculated its KL divergence: 51.763. As you can see from the distribution p
 
 ## PyTorch Code
 
-The data loading, data transformation, model architecture, loss function, and training loop are presented in this section. Detailed discussion on the key points of implementation are discussed above, but additional code annotation is provided for clarity. For the full code including visualization generation and experiment execution, please see [the notebook](https://github.com/acetherace/alcore/tree/master/notebooks/VAE.ipynb) on Github.
+The data loading, data transformation, model architecture, loss function, and training loop are presented in this section. Detailed discussion on the key points of implementation are discussed above, but additional code annotation is provided for clarity. For the full code including visualization generation and experiment execution, please see [this notebook](https://github.com/acetherace/alcore/tree/master/notebooks/VAE.ipynb) on Github.
 
 
 ### Imports and Helpers
@@ -200,9 +209,12 @@ Set configuration parameters for model training:
 ```python
 batch_size = 128
 epochs = 10
-seed = 1
+seed = 199
 log_interval=10
 device='cpu'
+
+torch.manual_seed(seed)
+np.random.seed(seed)
 ```
 
 ### Load and Prep Data
@@ -254,55 +266,112 @@ len(train_loader.dataset), len(test_loader.dataset)
 
 ### Define Model and Training Functions
 
-The `VAE` class fully defines the model architecture. It allows for a variable number of hidden layers and hidden layer sizes. It uses the ReLU activation function at each hidden layer. It separates the encoder and decoder into their own methods. It also has a method to perform the sampling step via the reparameterization trick.
+The encoder and decoder modules are defined separately as `VAEEncoder` and `BernoulliVAEDecoder`, respectively.  The `BernoulliVAE` class combines them to form the full model. It allows for a variable number of hidden layers and hidden layer sizes in both the encoder and decoder. It uses the ReLU activation function at each hidden layer.
 
 ```python
-class VAE(nn.Module):
-    def __init__(self, data_size=784, encoder_szs=[400, 2],
-                 decoder_szs=None):
-        super(VAE, self).__init__()
+class VAEEncoder(nn.Module):
+    """
+    Standard encoder module for variational autoencoders with tabular input and
+    factorized Gaussian posterior.
+    """
+    def __init__(self, data_size, hidden_sizes, latent_size):
+        """
+        Args:
+            data_size (int): Dimensionality of the input data.
+            hidden_sizes (list[int]): Sizes of hidden layers (not including the
+                input layer or the latent layer).
+            latent_size (int): Size of the latent space.
+        """
+        super().__init__()
 
-        # if decoder_szs not specified, assume symmetry
-        if decoder_szs is None:
-            decoder_szs = encoder_szs[::-1]
+        self.data_size=data_size
 
         # construct the encoder
-        encoder_szs = [data_size] + encoder_szs
+        encoder_szs = [data_size] + hidden_sizes
         encoder_layers = []
-        for in_sz, out_sz in zip(encoder_szs[:-2], encoder_szs[1:-1]):
+        for in_sz,out_sz, in zip(encoder_szs[:-1], encoder_szs[1:]):
             encoder_layers.append(nn.Linear(in_sz, out_sz))
             encoder_layers.append(nn.ReLU())
         self.encoder = nn.Sequential(*encoder_layers)
-        self.encoder_mu = nn.Linear(encoder_szs[-2], encoder_szs[-1])
-        self.encoder_logvar = nn.Linear(encoder_szs[-2], encoder_szs[-1])
-
-        # construct the decoder
-        decoder_layers = []
-        for in_sz, out_sz in zip(decoder_szs[:-1], decoder_szs[1:]):
-            decoder_layers.append(nn.Linear(in_sz, out_sz))
-            decoder_layers.append(nn.ReLU())
-        decoder_layers.append(nn.Linear(decoder_szs[-1], data_size))
-        decoder_layers.append(nn.Sigmoid())
-        self.decoder = nn.Sequential(*decoder_layers)
-
-        self.data_size = data_size
+        self.encoder_mu = nn.Linear(encoder_szs[-1], latent_size)
+        self.encoder_logvar = nn.Linear(encoder_szs[-1], latent_size)
 
     def encode(self, x):
-        h = self.encoder(x)
-        return self.encoder_mu(h), self.encoder_logvar(h)
+        return self.encoder(x)
+
+    def gaussian_param_projection(self, x):
+        return self.encoder_mu(x), self.encoder_logvar(x)
 
     def reparameterize(self, mu, logvar):
         std = torch.exp(0.5*logvar)
         eps = torch.randn_like(std)
         return mu + eps*std
 
+    def forward(self, x):
+        x = self.encode(x)
+        mu, logvar = self.gaussian_param_projection(x)
+        z = self.reparameterize(mu, logvar)
+        return z, mu, logvar
+
+
+class BernoulliVAEDecoder(nn.Module):
+    """
+    VAE decoder module that models a factorized multivariate Bernoulli
+    distribution with a feed-forward neural net.
+    """
+    def __init__(self, data_size, hidden_sizes, latent_size):
+        """
+        Args:
+            data_size (int): Dimensionality of the input data.
+            hidden_sizes (list[int]): Sizes of hidden layers (not including the
+                input layer or the latent layer).
+            latent_size (int): Size of the latent space.
+        """
+        super().__init__()
+
+        # construct the decoder
+        hidden_sizes = [latent_size] + hidden_sizes
+        decoder_layers = []
+        for in_sz,out_sz, in zip(hidden_sizes[:-1], hidden_sizes[1:]):
+            decoder_layers.append(nn.Linear(in_sz, out_sz))
+            decoder_layers.append(nn.ReLU())
+        decoder_layers.append(nn.Linear(hidden_sizes[-1], data_size))
+        decoder_layers.append(nn.Sigmoid())
+        self.decoder = nn.Sequential(*decoder_layers)
+
+    def forward(self, z):
+        return self.decoder(z)
+
+
+class BernoulliVAE(nn.Module):
+    """
+    VAE module that combines a `VAEEncoder` and a `BernoulliVAEDecoder` resulting
+    in full VAE.
+    """
+    def __init__(self, data_size, encoder_szs, latent_size, decoder_szs=None):
+        super().__init__()
+
+        # if decoder_szs not specified, assume symmetry
+        if decoder_szs is None:
+            decoder_szs = encoder_szs[::-1]
+
+        # construct the encoder
+        self.encoder = VAEEncoder(data_size=data_size, hidden_sizes=encoder_szs,
+                                  latent_size=latent_size)
+
+        # construct the decoder
+        self.decoder = BernoulliVAEDecoder(data_size=data_size, latent_size=latent_size,
+                                           hidden_sizes=decoder_szs)
+
+        self.data_size = data_size
+
     def decode(self, z):
         return self.decoder(z)
 
     def forward(self, x):
-        mu, logvar = self.encode(x.view(-1, self.data_size))
-        z = self.reparameterize(mu, logvar)
-        return self.decode(z), mu, logvar
+        z, mu, logvar = self.encoder(x)
+        p_x = self.decoder(z)
+        return p_x, mu, logvar
 ```
 
 The loss function is discussed in detail above.
@@ -330,6 +399,7 @@ def train(epoch, mb, figure_interval, viz_helper):
     pb = progress_bar(train_loader, parent=mb)
     for batch_idx, (data, _) in enumerate(pb):
         data = data.to(device)
+        data = data.view(-1, 784)
         optimizer.zero_grad()
         recon_batch, mu, logvar = model(data)
         loss = loss_function(recon_batch, data, mu, logvar)
@@ -353,6 +423,7 @@ def test(epoch, mb):
         pb = progress_bar(test_loader, parent=mb)
         for data, _ in test_loader:
             data = data.to(device)
+            data = data.view(-1, 784)
             recon_batch, mu, logvar = model(data)
             test_loss += loss_function(recon_batch, data, mu, logvar).item()
 
@@ -368,8 +439,7 @@ def fit(model, epochs, figure_interval, viz_helper):
     for epoch in mb:
         trn_loss = train(epoch, mb, figure_interval=10, viz_helper=viz_helper)
         tst_loss = test(epoch, mb)
-        mb.write(f'epoch {epoch}, train loss: {round(trn_loss,6)}, test loss: {round(tst_loss, 6)}')                                                                  
-
+        mb.write(f'epoch {epoch}, train loss: {round(trn_loss,6)}, test loss: {round(tst_loss, 6)}')
 ```
 
 ### VAE with 20-d Latent Space
@@ -383,7 +453,8 @@ viz_helper_20d = VAEVizHelper(recon_base_imgs, datagen_tracking=False)
 
 
 ```python
-model = VAE(encoder_szs=[400,20]).to(device)
+model = BernoulliVAE(data_size=784, encoder_szs=[400], latent_size=20,
+                     decoder_szs=[400]).to(device)
 optimizer = optim.Adam(model.parameters(), lr=1e-3)
 ```
 
@@ -391,18 +462,22 @@ optimizer = optim.Adam(model.parameters(), lr=1e-3)
 ```python
 model
 
-# VAE(
-#   (encoder): Sequential(
-#     (0): Linear(in_features=784, out_features=400, bias=True)
-#     (1): ReLU()
+# BernoulliVAE(
+#   (encoder): VAEEncoder(
+#     (encoder): Sequential(
+#       (0): Linear(in_features=784, out_features=400, bias=True)
+#       (1): ReLU()
+#     )
+#     (encoder_mu): Linear(in_features=400, out_features=20, bias=True)
+#     (encoder_logvar): Linear(in_features=400, out_features=20, bias=True)
 #   )
-#   (encoder_mu): Linear(in_features=400, out_features=20, bias=True)
-#   (encoder_logvar): Linear(in_features=400, out_features=20, bias=True)
-#   (decoder): Sequential(
-#     (0): Linear(in_features=20, out_features=400, bias=True)
-#     (1): ReLU()
-#     (2): Linear(in_features=400, out_features=784, bias=True)
-#     (3): Sigmoid()
+#   (decoder): BernoulliVAEDecoder(
+#     (decoder): Sequential(
+#       (0): Linear(in_features=20, out_features=400, bias=True)
+#       (1): ReLU()
+#       (2): Linear(in_features=400, out_features=784, bias=True)
+#       (3): Sigmoid()
+#     )
 #   )
 # )
 ```
@@ -418,29 +493,34 @@ Total time: 02:10 <p>epoch 1, train loss: 157.707501, test loss: 116.365121<p>ep
 Train a VAE with 2 dimensional latent space. This model will be used to generate the visualizations of data generation across the latent manifold. It is much easier to visualize a 2-d manifold.
 
 ```python
-model = VAE(encoder_szs=[400,150,2]).to(device)
+model = BernoulliVAE(data_size=784, encoder_szs=[400,150], latent_size=2,
+                     decoder_szs=[150,400]).to(device)
 optimizer = optim.Adam(model.parameters(), lr=1e-3)
 ```
 
 ```python
 model
 
-# VAE(
-#   (encoder): Sequential(
-#     (0): Linear(in_features=784, out_features=400, bias=True)
-#     (1): ReLU()
-#     (2): Linear(in_features=400, out_features=150, bias=True)
-#     (3): ReLU()
+# BernoulliVAE(
+#   (encoder): VAEEncoder(
+#     (encoder): Sequential(
+#       (0): Linear(in_features=784, out_features=400, bias=True)
+#       (1): ReLU()
+#       (2): Linear(in_features=400, out_features=150, bias=True)
+#       (3): ReLU()
+#     )
+#     (encoder_mu): Linear(in_features=150, out_features=2, bias=True)
+#     (encoder_logvar): Linear(in_features=150, out_features=2, bias=True)
 #   )
-#   (encoder_mu): Linear(in_features=150, out_features=2, bias=True)
-#   (encoder_logvar): Linear(in_features=150, out_features=2, bias=True)
-#   (decoder): Sequential(
-#     (0): Linear(in_features=2, out_features=150, bias=True)
-#     (1): ReLU()
-#     (2): Linear(in_features=150, out_features=400, bias=True)
-#     (3): ReLU()
-#     (4): Linear(in_features=400, out_features=784, bias=True)
-#     (5): Sigmoid()
+#   (decoder): BernoulliVAEDecoder(
+#     (decoder): Sequential(
+#       (0): Linear(in_features=2, out_features=150, bias=True)
+#       (1): ReLU()
+#       (2): Linear(in_features=150, out_features=400, bias=True)
+#       (3): ReLU()
+#       (4): Linear(in_features=400, out_features=784, bias=True)
+#       (5): Sigmoid()
+#     )
 #   )
 # )
 ```
@@ -449,6 +529,10 @@ model
 fit(model, 10, 10, viz_helper_2d)
 ```
 Total time: 02:50 <p>epoch 1, train loss: 164.487584, test loss: 159.490324<p>epoch 2, train loss: 155.384058, test loss: 152.910404<p>epoch 3, train loss: 150.389809, test loss: 149.377793<p>epoch 4, train loss: 147.043944, test loss: 146.478713<p>epoch 5, train loss: 144.72857, test loss: 144.263316<p>epoch 6, train loss: 142.759334, test loss: 143.399154<p>epoch 7, train loss: 141.358421, test loss: 141.273972<p>epoch 8, train loss: 140.11891, test loss: 141.396691<p>epoch 9, train loss: 139.222043, test loss: 140.119026<p>epoch 10, train loss: 138.443796, test loss: 140.24413
+
+## Conclusion
+
+In this post we drew the final connections between the abstract theory of variational autoencoders and a concrete implementation in PyTorch. By sampling a grid from the latent space and using the probabilistic decoder to map these samples into synthetic digits, we saw how the model has learned a highly structured latent space with smooth transitions between digit classes. We also discussed a simple example demonstrating how the VAE can be used for anomaly detection.
 
 ## Resources
 

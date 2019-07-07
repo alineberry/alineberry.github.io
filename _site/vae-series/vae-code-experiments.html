@@ -9,7 +9,7 @@
   <head>
     <meta charset="utf-8">
 
-<!-- begin _includes/seo.html --><title>[DRAFT] Variational Autoencoder Code and Experiments - Adam Lineberry</title>
+<!-- begin _includes/seo.html --><title>Variational Autoencoder Code and Experiments - Adam Lineberry</title>
 <meta name="description" content="Final connections between theory and lines of code">
 
 
@@ -17,7 +17,7 @@
 <meta property="og:type" content="article">
 <meta property="og:locale" content="en_US">
 <meta property="og:site_name" content="Adam Lineberry">
-<meta property="og:title" content="[DRAFT] Variational Autoencoder Code and Experiments">
+<meta property="og:title" content="Variational Autoencoder Code and Experiments">
 <meta property="og:url" content="http://localhost:4000/vae-series/vae-code-experiments">
 
 
@@ -29,7 +29,7 @@
 
 
 
-  <meta property="article:published_time" content="2019-05-28T00:00:00-06:00">
+  <meta property="article:published_time" content="2019-07-07T00:00:00-06:00">
 
 
 
@@ -160,7 +160,7 @@
       
 
       
-        <img src="/images/headshot.png" alt="Adam Lineberry" itemprop="image">
+        <img src="/images/headshot2.jpeg" alt="Adam Lineberry" itemprop="image">
       
     </div>
   
@@ -273,15 +273,15 @@
 
 
   <article class="page" itemscope itemtype="https://schema.org/CreativeWork">
-    <meta itemprop="headline" content="[DRAFT] Variational Autoencoder Code and Experiments">
+    <meta itemprop="headline" content="Variational Autoencoder Code and Experiments">
     <meta itemprop="description" content="Final connections between theory and lines of code">
-    <meta itemprop="datePublished" content="May 28, 2019">
+    <meta itemprop="datePublished" content="July 07, 2019">
     
 
     <div class="page__inner-wrap">
       
         <header>
-          <h1 id="page-title" class="page__title" itemprop="headline">[DRAFT] Variational Autoencoder Code and Experiments
+          <h1 id="page-title" class="page__title" itemprop="headline">Variational Autoencoder Code and Experiments
 </h1>
           
             <p class="page__meta"><i class="far fa-clock" aria-hidden="true"></i> 
@@ -289,7 +289,7 @@
 
 
 
-  15 minute read
+  17 minute read
 </p>
           
         </header>
@@ -297,7 +297,11 @@
 
       <section class="page__content" itemprop="text">
         
-        <p>In this post we will build and train a variational autoencoder (VAE) in PyTorch, tying everything back to the theory derived in my <a href="http://localhost:4000/vae-series/vae-theory">post on VAE theory</a>. The first half of the post provides discussion on the key points in the implementation. The second half provides the code itself along with some annotations.</p>
+        <p class="notice--info">This is the fourth and final post in my series: <a href="http://localhost:4000/vae-series/">From KL Divergence to Variational Autoencoder in PyTorch</a>. The previous post in the series is <a href="http://localhost:4000/vae-series/vae-theory">Variational Autoencoder Theory</a>.</p>
+
+<hr />
+
+<p>In this post we will build and train a variational autoencoder (VAE) in PyTorch, tying everything back to the theory derived in my <a href="http://localhost:4000/vae-series/vae-theory">post on VAE theory</a>. The first half of the post provides discussion on the key points in the implementation. The second half provides the code itself along with some annotations.</p>
 
 <p>The VAE in this post is trained on the MNIST dataset on a laptop CPU. The images (originally 28x28) are flattened into a 784 dimensional vector for simplicity. The MNIST pixel intensity values, originally continuous <script type="math/tex">\in [0,1]</script> are binarized such that each pixel value is <script type="math/tex">\in \{0,1\}</script>.</p>
 
@@ -332,7 +336,7 @@ KL[q_{\phi}(z_i \lvert x_i) \lVert p_{\theta}(z_i)] \big]
 
 <p>Since the data is binary in this experiment, we will construct <script type="math/tex">p_{\theta}(x \lvert z)</script> to model a multivariate factorized Bernoulli distribution. (Note, the distribution chosen to model the reconstruction is dataset-specific. If you have continuous data then a factorized Gaussian may be more appropriate.) This means that, for each data point, we view the 784 binary pixels values as independent Bernoulli observations. As such, the decoder network will output 784 Bernoulli parameters. The Bernoulli parameter is the probability of success in a binary outcome trial <script type="math/tex">p \in [0, 1]</script> (e.g., the probability of heads when flipping a biased coin).</p>
 
-<p>Let’s take the <script type="math/tex">j^{th}</script> pixel of the <script type="math/tex">i^{th}</script> image as an example and call it <script type="math/tex">x_{ij}</script>. Since we’re dealing with binary pixel values, <script type="math/tex">x_{ij} \in \{0,1\}</script> can be interpreted as the result of a Bernoulli trial. The model’s output for this pixel will be the Bernoulli parameter corresponding to that pixel and let’s call that specific output <script type="math/tex">p_{ij} \in [0,1]</script>. The likelihood of the data for that pixel <script type="math/tex">p_{\theta}(x_{ij} \lvert z_i)</script> is then given by the Bernoulli PMF:</p>
+<p>Let’s take the <script type="math/tex">j^{th}</script> pixel of the <script type="math/tex">i^{th}</script> image as an example and call it <script type="math/tex">x_{ij}</script>. Since we’re dealing with binary pixel values, <script type="math/tex">x_{ij} \in \{0,1\}</script> can be interpreted as the result of a Bernoulli trial. The model’s output will be the Bernoulli parameter corresponding to that pixel; let’s call that specific output <script type="math/tex">p_{ij} \in [0,1]</script>. The likelihood of that pixel <script type="math/tex">p_{\theta}(x_{ij} \lvert z_i)</script> is then given by the Bernoulli PMF:</p>
 
 <script type="math/tex; mode=display">p_{ij}^{x_{ij}}(1-p_{ij})^{1-x_{ij}}</script>
 
@@ -340,20 +344,20 @@ KL[q_{\phi}(z_i \lvert x_i) \lVert p_{\theta}(z_i)] \big]
 
 <script type="math/tex; mode=display">x_{ij} \log p_{ij} + (1-x_{ij}) \log (1-p_{ij})</script>
 
-<p>This equation may be familiar to some. The negative of it is commonly known as the binary cross entropy and is implemented in PyTorch by <a href="https://pytorch.org/docs/stable/nn.html?highlight=binary_cross_entropy#torch.nn.BCELoss"><code class="highlighter-rouge">torch.nn.BCELoss</code></a>.</p>
+<p>This equation may look familiar. The negative of it is commonly known as binary cross entropy and is implemented in PyTorch by <a href="https://pytorch.org/docs/stable/nn.html?highlight=binary_cross_entropy#torch.nn.BCELoss"><code class="highlighter-rouge">torch.nn.BCELoss</code></a>.</p>
 
 <p>Now, the log likelihood of the full data point <script type="math/tex">x_i</script> is given by</p>
 
 <script type="math/tex; mode=display">% <![CDATA[
 \begin{align}
-log_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert z_i) \\
+\log p_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert z_i) \\
 &= \sum_{j=1}^{784} \log p_{\theta}(x_{ij} \lvert z_i) \\
 &= \sum_{j=1}^{784} \bigg[ x_{ij} \log p_{ij} + (1-x_{ij}) \log (1-p_{ij}) \bigg]
 \end{align} %]]></script>
 
-<p>In PyTorch the final expression is implemented by <a href="https://pytorch.org/docs/stable/nn.html#binary-cross-entropy"><code class="highlighter-rouge">torch.nn.functional.binary_cross_entropy</code></a> with <code class="highlighter-rouge">reduction='sum'</code>. Since we are training in minibatches, we want the sum of log probabilities for all pixels in that minibatch. This is accomplished by simply passing full batches through the same function call. You can think of the operation performed as first summing the 784 values for each datapoint. Then, in a second aggregation step, it will sum over the batch.</p>
+<p>In PyTorch the final expression is implemented by <a href="https://pytorch.org/docs/stable/nn.html#binary-cross-entropy"><code class="highlighter-rouge">torch.nn.functional.binary_cross_entropy</code></a> with <code class="highlighter-rouge">reduction='sum'</code>. Since we are training in minibatches, we want the sum of log probabilities for all pixels in that minibatch. This is accomplished by simply passing full batches through the same function call. You can think of the operation performed as first summing the 784 values for each datapoint and then summing over data points in the batch. In reality, a <code class="highlighter-rouge">(batch_size, 784)</code> size tensor of cross entropy values will be computed and then summed over all axes.</p>
 
-<p>The expectation of the log likelihood over <script type="math/tex">q_{\phi}(z \lvert x)</script> is satisfied by simply sampling one point from <script type="math/tex">q_{\phi}(z \lvert x)</script> and passing it through the decoder. Note that there are no additional complexities here; this is the same basic forward pass. As discussed in the previous post, this is the Monte Carlo approximation of the expected value of a function.</p>
+<p>The expectation of the log likelihood over <script type="math/tex">q_{\phi}(z \lvert x)</script> is satisfied by simply sampling one point from <script type="math/tex">q_{\phi}(z \lvert x)</script> and passing it through the decoder. Note that there are no additional complexities here; this is a basic forward pass. As discussed in the previous post, this is the Monte Carlo approximation of the expected value of a function.</p>
 
 <h3 id="second-term-kl-divergence-regularization">Second term (KL divergence, regularization)</h3>
 
@@ -367,14 +371,14 @@ log_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert 
 
 <p>Where <script type="math/tex">J</script> is the size of the latent space (number of dimensions), and <script type="math/tex">\mu</script> and <script type="math/tex">\sigma^2</script> are the mean and variance vectors output from the probabilistic encoder.</p>
 
-<p>In order to compute this, the forward pass of the network must also return mean and variance vectors output from the encoder, not just the reconstruction portion. In other words, it must return the outputs from both the encoder and the decoder.</p>
+<p>In order to compute this, the forward pass of the network must also return mean and variance vectors output from the encoder, not just the reconstruction portion. In other words, the full model must return the outputs from both the encoder and the decoder.</p>
 
 <p>The KL term can be computed across a minibatch with the following:</p>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">logvar</span> <span class="o">-</span> <span class="n">mu</span><span class="o">.</span><span class="nb">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">logvar</span><span class="o">.</span><span class="n">exp</span><span class="p">())</span>
 </code></pre></div></div>
 
-<p>Where <code class="highlighter-rouge">mu</code> and <code class="highlighter-rouge">logvar</code> are tensors of means and log variances across the minibatch, respectively. Both of these tensors will have shape <code class="highlighter-rouge">(batch_size, latent_space_size)</code>.</p>
+<p>Where <code class="highlighter-rouge">mu</code> and <code class="highlighter-rouge">logvar</code> are tensors of means and log variances across the minibatch, respectively. Both of these tensors will have size <code class="highlighter-rouge">(batch_size, latent_space_size)</code>.</p>
 
 <h3 id="putting-the-terms-together">Putting the terms together</h3>
 
@@ -382,7 +386,10 @@ log_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert 
 
 <h2 id="sampling-from-the-encoder">Sampling from the encoder</h2>
 
-<p>A key step in the flow of the VAE is sampling a data point from the encoder <script type="math/tex">q_{\phi}(z \lvert x)</script>. The reparameterization trick is used to perform this sampling without introducing a discontinuity in the network (as discussed in the previous post).</p>
+<p>A key step in the flow of the VAE is sampling a data point from the encoder <script type="math/tex">q_{\phi}(z_i \lvert x_i)</script>. The reparameterization trick is used to perform this sampling without introducing a discontinuity in the network (as discussed in the previous post).</p>
+
+<script type="math/tex; mode=display">z_i = g_{\phi}(x_i, \epsilon_i) = \mu_{\phi}(x_i) + diag(\sigma_{\phi}(x_i)) \cdot \epsilon_i \\
+\epsilon_i \sim \mathcal{N}(0, I)</script>
 
 <p>In the forward pass, the vector of means and log variances are collected from the encoder. These vectors are used to generate a data sample as such</p>
 
@@ -392,18 +399,15 @@ log_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert 
   <span class="k">return</span> <span class="n">mu</span> <span class="o">+</span> <span class="n">eps</span><span class="o">*</span><span class="n">std</span>
 </code></pre></div></div>
 
-<p>This code above implements</p>
-
-<script type="math/tex; mode=display">z_i = g_{\phi}(x_i, \epsilon) = \mu_{\phi}(x) + diag(s_{\phi}(x)) \cdot \epsilon \\
-\epsilon \sim \mathcal{N}(0, I)</script>
-
 <h2 id="experiment-results">Experiment results</h2>
 
 <h3 id="data-generation">Data generation</h3>
 
 <p>At various points during training, I sampled a grid of points from the latent space. The points are linearly spaced coordinates on the unit square, transformed through the inverse Gaussian CDF. This results in a grid of points with evenly spaced quantiles of the Gaussian. In plain English (sort of), this means slicing the Gaussian into equal sized chunks.</p>
 
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="bp">self</span><span class="o">.</span><span class="n">grid_x</span> <span class="o">=</span> <span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">norm</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">20</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">grid_x</span> <span class="o">=</span> <span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
 <span class="bp">self</span><span class="o">.</span><span class="n">grid_y</span> <span class="o">=</span> <span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
 </code></pre></div></div>
 
@@ -416,8 +420,11 @@ log_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert 
 <p>Animation for just the early stages of training:
 <img src="http://localhost:4000/images/vae/datagen_tracking_early.gif" alt="" width="500" class="align-center" /></p>
 
-<p>The final state of the learned manifold and data generation after training has completed:
+<p>The final state of the learned manifold after training has completed:
 <img src="http://localhost:4000/images/vae/datagen_final.png" width="500" class="align-center" /></p>
+
+<p>As you can see, there are regions dedicated to individual digits with smooth transitions in between. I tried hand drawing the boundaries between digits to aid the visualization:
+<img src="http://localhost:4000/images/vae/datagen_final_handdrawn_partitions.png" width="500" class="align-center" /></p>
 
 <h3 id="data-reconstruction">Data reconstruction</h3>
 
@@ -431,7 +438,7 @@ log_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert 
 
 <h3 id="anomaly-detection">Anomaly detection</h3>
 
-<p>Anomalous data can be detected by leveraging the probabilistic nature of the VAE. One (of many) ways to detect anomalies is to measure the KL divergence between the encoder distribution <script type="math/tex">q_{\phi}(z \lvert x)</script> and the prior <script type="math/tex">p_{\theta}(z)</script> and compare it to the average across the training (or test) set.</p>
+<p>Anomalous data can be detected by leveraging the probabilistic nature of the VAE. One way to detect anomalies is to measure the KL divergence between the encoder distribution <script type="math/tex">q_{\phi}(z_i \lvert x_i)</script> and the prior <script type="math/tex">p_{\theta}(z)</script> and compare it to the average across the training (or test) set.</p>
 
 <p>I computed this KL divergence for every point in the training set and plotted the resulting distribution:</p>
 
@@ -445,7 +452,7 @@ log_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert 
 
 <h2 id="pytorch-code">PyTorch Code</h2>
 
-<p>The data loading, data transformation, model architecture, loss function, and training loop are presented in this section. Detailed discussion on the key points of implementation are discussed above, but additional code annotation is provided for clarity. For the full code including visualization generation and experiment execution, please see <a href="https://github.com/acetherace/alcore/tree/master/notebooks/VAE.ipynb">the notebook</a> on Github.</p>
+<p>The data loading, data transformation, model architecture, loss function, and training loop are presented in this section. Detailed discussion on the key points of implementation are discussed above, but additional code annotation is provided for clarity. For the full code including visualization generation and experiment execution, please see <a href="https://github.com/acetherace/alcore/tree/master/notebooks/VAE.ipynb">this notebook</a> on Github.</p>
 
 <h3 id="imports-and-helpers">Imports and Helpers</h3>
 
@@ -471,9 +478,12 @@ log_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert 
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">batch_size</span> <span class="o">=</span> <span class="mi">128</span>
 <span class="n">epochs</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">seed</span> <span class="o">=</span> <span class="mi">199</span>
 <span class="n">log_interval</span><span class="o">=</span><span class="mi">10</span>
 <span class="n">device</span><span class="o">=</span><span class="s">'cpu'</span>
+
+<span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
 </code></pre></div></div>
 
 <h3 id="load-and-prep-data">Load and Prep Data</h3>
@@ -520,54 +530,111 @@ log_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert 
 
 <h3 id="define-model-and-training-functions">Define Model and Training Functions</h3>
 
-<p>The <code class="highlighter-rouge">VAE</code> class fully defines the model architecture. It allows for a variable number of hidden layers and hidden layer sizes. It uses the ReLU activation function at each hidden layer. It separates the encoder and decoder into their own methods. It also has a method to perform the sampling step via the reparameterization trick.</p>
+<p>The encoder and decoder modules are defined separately as <code class="highlighter-rouge">VAEEncoder</code> and <code class="highlighter-rouge">BernoulliVAEDecoder</code>, respectively.  The <code class="highlighter-rouge">BernoulliVAE</code> class combines them to form the full model. It allows for a variable number of hidden layers and hidden layer sizes in both the encoder and decoder. It uses the ReLU activation function at each hidden layer.</p>
 
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">VAE</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_size</span><span class="o">=</span><span class="mi">784</span><span class="p">,</span> <span class="n">encoder_szs</span><span class="o">=</span><span class="p">[</span><span class="mi">400</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
-                 <span class="n">decoder_szs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">VAE</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">VAEEncoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="s">"""
+    Standard encoder module for variational autoencoders with tabular input and
+    factorized Gaussian posterior.
+    """</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_size</span><span class="p">,</span> <span class="n">hidden_sizes</span><span class="p">,</span> <span class="n">latent_size</span><span class="p">):</span>
+        <span class="s">"""
+        Args:
+            data_size (int): Dimensionality of the input data.
+            hidden_sizes (list[int]): Sizes of hidden layers (not including the
+                input layer or the latent layer).
+            latent_size (int): Size of the latent space.
+        """</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
 
-        <span class="c"># if decoder_szs not specified, assume symmetry</span>
-        <span class="k">if</span> <span class="n">decoder_szs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">decoder_szs</span> <span class="o">=</span> <span class="n">encoder_szs</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_size</span><span class="o">=</span><span class="n">data_size</span>
 
         <span class="c"># construct the encoder</span>
-        <span class="n">encoder_szs</span> <span class="o">=</span> <span class="p">[</span><span class="n">data_size</span><span class="p">]</span> <span class="o">+</span> <span class="n">encoder_szs</span>
+        <span class="n">encoder_szs</span> <span class="o">=</span> <span class="p">[</span><span class="n">data_size</span><span class="p">]</span> <span class="o">+</span> <span class="n">hidden_sizes</span>
         <span class="n">encoder_layers</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">in_sz</span><span class="p">,</span> <span class="n">out_sz</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">encoder_szs</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="n">encoder_szs</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="k">for</span> <span class="n">in_sz</span><span class="p">,</span><span class="n">out_sz</span><span class="p">,</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">encoder_szs</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">encoder_szs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
             <span class="n">encoder_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">in_sz</span><span class="p">,</span> <span class="n">out_sz</span><span class="p">))</span>
             <span class="n">encoder_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">encoder_layers</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">encoder_mu</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">encoder_szs</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="n">encoder_szs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">encoder_logvar</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">encoder_szs</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="n">encoder_szs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-
-        <span class="c"># construct the decoder</span>
-        <span class="n">decoder_layers</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">in_sz</span><span class="p">,</span> <span class="n">out_sz</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">decoder_szs</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">decoder_szs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
-            <span class="n">decoder_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">in_sz</span><span class="p">,</span> <span class="n">out_sz</span><span class="p">))</span>
-            <span class="n">decoder_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">())</span>
-        <span class="n">decoder_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">decoder_szs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">data_size</span><span class="p">))</span>
-        <span class="n">decoder_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">decoder_layers</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">data_size</span> <span class="o">=</span> <span class="n">data_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">encoder_mu</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">encoder_szs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">latent_size</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">encoder_logvar</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">encoder_szs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">latent_size</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder_mu</span><span class="p">(</span><span class="n">h</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder_logvar</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">gaussian_param_projection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder_mu</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder_logvar</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">reparameterize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">logvar</span><span class="p">):</span>
         <span class="n">std</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mf">0.5</span><span class="o">*</span><span class="n">logvar</span><span class="p">)</span>
         <span class="n">eps</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">std</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">mu</span> <span class="o">+</span> <span class="n">eps</span><span class="o">*</span><span class="n">std</span>
 
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">mu</span><span class="p">,</span> <span class="n">logvar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gaussian_param_projection</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reparameterize</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">logvar</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">z</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">logvar</span>
+
+
+<span class="k">class</span> <span class="nc">BernoulliVAEDecoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="s">"""
+    VAE decoder module that models a factorized multivariate Bernoulli
+    distribution with a feed-forward neural net.
+    """</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_size</span><span class="p">,</span> <span class="n">hidden_sizes</span><span class="p">,</span> <span class="n">latent_size</span><span class="p">):</span>
+        <span class="s">"""
+        Args:
+            data_size (int): Dimensionality of the input data.
+            hidden_sizes (list[int]): Sizes of hidden layers (not including the
+                input layer or the latent layer).
+            latent_size (int): Size of the latent space.
+        """</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+
+        <span class="c"># construct the decoder</span>
+        <span class="n">hidden_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="n">latent_size</span><span class="p">]</span> <span class="o">+</span> <span class="n">hidden_sizes</span>
+        <span class="n">decoder_layers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">in_sz</span><span class="p">,</span><span class="n">out_sz</span><span class="p">,</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">hidden_sizes</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">hidden_sizes</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+            <span class="n">decoder_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">in_sz</span><span class="p">,</span> <span class="n">out_sz</span><span class="p">))</span>
+            <span class="n">decoder_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">())</span>
+        <span class="n">decoder_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_sizes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">data_size</span><span class="p">))</span>
+        <span class="n">decoder_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">decoder_layers</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">BernoulliVAE</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="s">"""
+    VAE module that combines a `VAEEncoder` and a `BernoulliVAEDecoder` resulting
+    in full VAE.
+    """</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_size</span><span class="p">,</span> <span class="n">encoder_szs</span><span class="p">,</span> <span class="n">latent_size</span><span class="p">,</span> <span class="n">decoder_szs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+
+        <span class="c"># if decoder_szs not specified, assume symmetry</span>
+        <span class="k">if</span> <span class="n">decoder_szs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">decoder_szs</span> <span class="o">=</span> <span class="n">encoder_szs</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c"># construct the encoder</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span> <span class="o">=</span> <span class="n">VAEEncoder</span><span class="p">(</span><span class="n">data_size</span><span class="o">=</span><span class="n">data_size</span><span class="p">,</span> <span class="n">hidden_sizes</span><span class="o">=</span><span class="n">encoder_szs</span><span class="p">,</span>
+                                  <span class="n">latent_size</span><span class="o">=</span><span class="n">latent_size</span><span class="p">)</span>
+
+        <span class="c"># construct the decoder</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span> <span class="o">=</span> <span class="n">BernoulliVAEDecoder</span><span class="p">(</span><span class="n">data_size</span><span class="o">=</span><span class="n">data_size</span><span class="p">,</span> <span class="n">latent_size</span><span class="o">=</span><span class="n">latent_size</span><span class="p">,</span>
+                                           <span class="n">hidden_sizes</span><span class="o">=</span><span class="n">decoder_szs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_size</span> <span class="o">=</span> <span class="n">data_size</span>
+
     <span class="k">def</span> <span class="nf">decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="n">mu</span><span class="p">,</span> <span class="n">logvar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_size</span><span class="p">))</span>
-        <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reparameterize</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">logvar</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">z</span><span class="p">),</span> <span class="n">mu</span><span class="p">,</span> <span class="n">logvar</span>
+        <span class="n">z</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">logvar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">p_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">p_x</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">logvar</span>
 </code></pre></div></div>
 
 <p>The loss function is discussed in detail above.</p>
@@ -593,6 +660,7 @@ log_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert 
     <span class="n">pb</span> <span class="o">=</span> <span class="n">progress_bar</span><span class="p">(</span><span class="n">train_loader</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">mb</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pb</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">784</span><span class="p">)</span>
         <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
         <span class="n">recon_batch</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">logvar</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="n">loss</span> <span class="o">=</span> <span class="n">loss_function</span><span class="p">(</span><span class="n">recon_batch</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">logvar</span><span class="p">)</span>
@@ -615,6 +683,7 @@ log_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert 
         <span class="n">pb</span> <span class="o">=</span> <span class="n">progress_bar</span><span class="p">(</span><span class="n">test_loader</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">mb</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">data</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">test_loader</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">784</span><span class="p">)</span>
             <span class="n">recon_batch</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">logvar</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
             <span class="n">test_loss</span> <span class="o">+=</span> <span class="n">loss_function</span><span class="p">(</span><span class="n">recon_batch</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">logvar</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
 
@@ -629,8 +698,7 @@ log_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert 
     <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="n">mb</span><span class="p">:</span>
         <span class="n">trn_loss</span> <span class="o">=</span> <span class="n">train</span><span class="p">(</span><span class="n">epoch</span><span class="p">,</span> <span class="n">mb</span><span class="p">,</span> <span class="n">figure_interval</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">viz_helper</span><span class="o">=</span><span class="n">viz_helper</span><span class="p">)</span>
         <span class="n">tst_loss</span> <span class="o">=</span> <span class="n">test</span><span class="p">(</span><span class="n">epoch</span><span class="p">,</span> <span class="n">mb</span><span class="p">)</span>
-        <span class="n">mb</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">f</span><span class="s">'epoch {epoch}, train loss: {round(trn_loss,6)}, test loss: {round(tst_loss, 6)}'</span><span class="p">)</span>                                                                  
-
+        <span class="n">mb</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">f</span><span class="s">'epoch {epoch}, train loss: {round(trn_loss,6)}, test loss: {round(tst_loss, 6)}'</span><span class="p">)</span>
 </code></pre></div></div>
 
 <h3 id="vae-with-20-d-latent-space">VAE with 20-d Latent Space</h3>
@@ -640,24 +708,29 @@ log_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">viz_helper_20d</span> <span class="o">=</span> <span class="n">VAEVizHelper</span><span class="p">(</span><span class="n">recon_base_imgs</span><span class="p">,</span> <span class="n">datagen_tracking</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 </code></pre></div></div>
 
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">model</span> <span class="o">=</span> <span class="n">VAE</span><span class="p">(</span><span class="n">encoder_szs</span><span class="o">=</span><span class="p">[</span><span class="mi">400</span><span class="p">,</span><span class="mi">20</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">model</span> <span class="o">=</span> <span class="n">BernoulliVAE</span><span class="p">(</span><span class="n">data_size</span><span class="o">=</span><span class="mi">784</span><span class="p">,</span> <span class="n">encoder_szs</span><span class="o">=</span><span class="p">[</span><span class="mi">400</span><span class="p">],</span> <span class="n">latent_size</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+                     <span class="n">decoder_szs</span><span class="o">=</span><span class="p">[</span><span class="mi">400</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
 <span class="n">optimizer</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">)</span>
 </code></pre></div></div>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">model</span>
 
-<span class="c"># VAE(</span>
-<span class="c">#   (encoder): Sequential(</span>
-<span class="c">#     (0): Linear(in_features=784, out_features=400, bias=True)</span>
-<span class="c">#     (1): ReLU()</span>
+<span class="c"># BernoulliVAE(</span>
+<span class="c">#   (encoder): VAEEncoder(</span>
+<span class="c">#     (encoder): Sequential(</span>
+<span class="c">#       (0): Linear(in_features=784, out_features=400, bias=True)</span>
+<span class="c">#       (1): ReLU()</span>
+<span class="c">#     )</span>
+<span class="c">#     (encoder_mu): Linear(in_features=400, out_features=20, bias=True)</span>
+<span class="c">#     (encoder_logvar): Linear(in_features=400, out_features=20, bias=True)</span>
 <span class="c">#   )</span>
-<span class="c">#   (encoder_mu): Linear(in_features=400, out_features=20, bias=True)</span>
-<span class="c">#   (encoder_logvar): Linear(in_features=400, out_features=20, bias=True)</span>
-<span class="c">#   (decoder): Sequential(</span>
-<span class="c">#     (0): Linear(in_features=20, out_features=400, bias=True)</span>
-<span class="c">#     (1): ReLU()</span>
-<span class="c">#     (2): Linear(in_features=400, out_features=784, bias=True)</span>
-<span class="c">#     (3): Sigmoid()</span>
+<span class="c">#   (decoder): BernoulliVAEDecoder(</span>
+<span class="c">#     (decoder): Sequential(</span>
+<span class="c">#       (0): Linear(in_features=20, out_features=400, bias=True)</span>
+<span class="c">#       (1): ReLU()</span>
+<span class="c">#       (2): Linear(in_features=400, out_features=784, bias=True)</span>
+<span class="c">#       (3): Sigmoid()</span>
+<span class="c">#     )</span>
 <span class="c">#   )</span>
 <span class="c"># )</span>
 </code></pre></div></div>
@@ -670,28 +743,33 @@ log_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert 
 
 <p>Train a VAE with 2 dimensional latent space. This model will be used to generate the visualizations of data generation across the latent manifold. It is much easier to visualize a 2-d manifold.</p>
 
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">model</span> <span class="o">=</span> <span class="n">VAE</span><span class="p">(</span><span class="n">encoder_szs</span><span class="o">=</span><span class="p">[</span><span class="mi">400</span><span class="p">,</span><span class="mi">150</span><span class="p">,</span><span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">model</span> <span class="o">=</span> <span class="n">BernoulliVAE</span><span class="p">(</span><span class="n">data_size</span><span class="o">=</span><span class="mi">784</span><span class="p">,</span> <span class="n">encoder_szs</span><span class="o">=</span><span class="p">[</span><span class="mi">400</span><span class="p">,</span><span class="mi">150</span><span class="p">],</span> <span class="n">latent_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                     <span class="n">decoder_szs</span><span class="o">=</span><span class="p">[</span><span class="mi">150</span><span class="p">,</span><span class="mi">400</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
 <span class="n">optimizer</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">)</span>
 </code></pre></div></div>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">model</span>
 
-<span class="c"># VAE(</span>
-<span class="c">#   (encoder): Sequential(</span>
-<span class="c">#     (0): Linear(in_features=784, out_features=400, bias=True)</span>
-<span class="c">#     (1): ReLU()</span>
-<span class="c">#     (2): Linear(in_features=400, out_features=150, bias=True)</span>
-<span class="c">#     (3): ReLU()</span>
+<span class="c"># BernoulliVAE(</span>
+<span class="c">#   (encoder): VAEEncoder(</span>
+<span class="c">#     (encoder): Sequential(</span>
+<span class="c">#       (0): Linear(in_features=784, out_features=400, bias=True)</span>
+<span class="c">#       (1): ReLU()</span>
+<span class="c">#       (2): Linear(in_features=400, out_features=150, bias=True)</span>
+<span class="c">#       (3): ReLU()</span>
+<span class="c">#     )</span>
+<span class="c">#     (encoder_mu): Linear(in_features=150, out_features=2, bias=True)</span>
+<span class="c">#     (encoder_logvar): Linear(in_features=150, out_features=2, bias=True)</span>
 <span class="c">#   )</span>
-<span class="c">#   (encoder_mu): Linear(in_features=150, out_features=2, bias=True)</span>
-<span class="c">#   (encoder_logvar): Linear(in_features=150, out_features=2, bias=True)</span>
-<span class="c">#   (decoder): Sequential(</span>
-<span class="c">#     (0): Linear(in_features=2, out_features=150, bias=True)</span>
-<span class="c">#     (1): ReLU()</span>
-<span class="c">#     (2): Linear(in_features=150, out_features=400, bias=True)</span>
-<span class="c">#     (3): ReLU()</span>
-<span class="c">#     (4): Linear(in_features=400, out_features=784, bias=True)</span>
-<span class="c">#     (5): Sigmoid()</span>
+<span class="c">#   (decoder): BernoulliVAEDecoder(</span>
+<span class="c">#     (decoder): Sequential(</span>
+<span class="c">#       (0): Linear(in_features=2, out_features=150, bias=True)</span>
+<span class="c">#       (1): ReLU()</span>
+<span class="c">#       (2): Linear(in_features=150, out_features=400, bias=True)</span>
+<span class="c">#       (3): ReLU()</span>
+<span class="c">#       (4): Linear(in_features=400, out_features=784, bias=True)</span>
+<span class="c">#       (5): Sigmoid()</span>
+<span class="c">#     )</span>
 <span class="c">#   )</span>
 <span class="c"># )</span>
 </code></pre></div></div>
@@ -699,6 +777,10 @@ log_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">fit</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">viz_helper_2d</span><span class="p">)</span>
 </code></pre></div></div>
 <p>Total time: 02:50 &lt;p&gt;epoch 1, train loss: 164.487584, test loss: 159.490324&lt;p&gt;epoch 2, train loss: 155.384058, test loss: 152.910404&lt;p&gt;epoch 3, train loss: 150.389809, test loss: 149.377793&lt;p&gt;epoch 4, train loss: 147.043944, test loss: 146.478713&lt;p&gt;epoch 5, train loss: 144.72857, test loss: 144.263316&lt;p&gt;epoch 6, train loss: 142.759334, test loss: 143.399154&lt;p&gt;epoch 7, train loss: 141.358421, test loss: 141.273972&lt;p&gt;epoch 8, train loss: 140.11891, test loss: 141.396691&lt;p&gt;epoch 9, train loss: 139.222043, test loss: 140.119026&lt;p&gt;epoch 10, train loss: 138.443796, test loss: 140.24413</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In this post we drew the final connections between the abstract theory of variational autoencoders and a concrete implementation in PyTorch. By sampling a grid from the latent space and using the probabilistic decoder to map these samples into synthetic digits, we saw how the model has learned a highly structured latent space with smooth transitions between digit classes. We also discussed a simple example demonstrating how the VAE can be used for anomaly detection.</p>
 
 <h2 id="resources">Resources</h2>
 
@@ -732,7 +814,7 @@ log_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert 
 
 
         
-          <p class="page__date"><strong><i class="fas fa-fw fa-calendar-alt" aria-hidden="true"></i> Updated:</strong> <time datetime="2019-05-28T00:00:00-06:00">May 28, 2019</time></p>
+          <p class="page__date"><strong><i class="fas fa-fw fa-calendar-alt" aria-hidden="true"></i> Updated:</strong> <time datetime="2019-07-07T00:00:00-06:00">July 07, 2019</time></p>
         
       </footer>
 
@@ -741,7 +823,7 @@ log_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert 
     <h4 class="page__share-title">Share on</h4>
   
 
-  <a href="https://twitter.com/intent/tweet?text=%5BDRAFT%5D+Variational+Autoencoder+Code+and+Experiments%20http%3A%2F%2Flocalhost%3A4000%2Fvae-series%2Fvae-code-experiments" class="btn btn--twitter" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Twitter"><i class="fab fa-fw fa-twitter" aria-hidden="true"></i><span> Twitter</span></a>
+  <a href="https://twitter.com/intent/tweet?text=Variational+Autoencoder+Code+and+Experiments%20http%3A%2F%2Flocalhost%3A4000%2Fvae-series%2Fvae-code-experiments" class="btn btn--twitter" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Twitter"><i class="fab fa-fw fa-twitter" aria-hidden="true"></i><span> Twitter</span></a>
 
   <a href="https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Flocalhost%3A4000%2Fvae-series%2Fvae-code-experiments" class="btn btn--facebook" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Facebook"><i class="fab fa-fw fa-facebook" aria-hidden="true"></i><span> Facebook</span></a>
 
@@ -752,11 +834,11 @@ log_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert 
       
   <nav class="pagination">
     
-      <a href="/vae-series/variational-inference" class="pagination--pager" title="[DRAFT] Latent Variable Models, Expectation Maximization, and Variational Inference
+      <a href="/vae-series/variational-inference" class="pagination--pager" title="Latent Variable Models, Expectation Maximization, and Variational Inference
 ">Previous</a>
     
     
-      <a href="/vae-series/vae-theory" class="pagination--pager" title="[DRAFT] Variational Autoencoder Theory
+      <a href="/vae-series/vae-theory" class="pagination--pager" title="Variational Autoencoder Theory
 ">Next</a>
     
   </nav>
@@ -781,7 +863,7 @@ log_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert 
     
     <h2 class="archive__item-title" itemprop="headline">
       
-        <a href="/vae-series" rel="permalink">[DRAFT] Blog Post Series: From KL Divergence to Variational Autoencoder in PyTorch
+        <a href="/vae-series" rel="permalink">Blog Post Series: From KL Divergence to Variational Autoencoder in PyTorch
 </a>
       
     </h2>
@@ -809,7 +891,7 @@ log_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert 
     
     <h2 class="archive__item-title" itemprop="headline">
       
-        <a href="/vae-series/vae-theory" rel="permalink">[DRAFT] Variational Autoencoder Theory
+        <a href="/vae-series/vae-theory" rel="permalink">Variational Autoencoder Theory
 </a>
       
     </h2>
@@ -819,7 +901,7 @@ log_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert 
 
 
 
-  14 minute read
+  15 minute read
 </p>
     
     <p class="archive__item-excerpt" itemprop="description">Transforming general theory into VAE-specific theory
@@ -837,7 +919,7 @@ log_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert 
     
     <h2 class="archive__item-title" itemprop="headline">
       
-        <a href="/vae-series/variational-inference" rel="permalink">[DRAFT] Latent Variable Models, Expectation Maximization, and Variational Inference
+        <a href="/vae-series/variational-inference" rel="permalink">Latent Variable Models, Expectation Maximization, and Variational Inference
 </a>
       
     </h2>
@@ -847,7 +929,7 @@ log_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert 
 
 
 
-  6 minute read
+  7 minute read
 </p>
     
     <p class="archive__item-excerpt" itemprop="description">Introduction to the general theory of variational inference
@@ -865,7 +947,7 @@ log_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert 
     
     <h2 class="archive__item-title" itemprop="headline">
       
-        <a href="/vae-series/kl-divergence" rel="permalink">[DRAFT] A Quick Primer on KL Divergence
+        <a href="/vae-series/kl-divergence" rel="permalink">A Quick Primer on KL Divergence
 </a>
       
     </h2>
@@ -875,7 +957,7 @@ log_{\theta}(x_i \lvert z_i) &= \log \prod_{j=1}^{784} p_{\theta}(x_{ij} \lvert 
 
 
 
-  3 minute read
+  4 minute read
 </p>
     
     <p class="archive__item-excerpt" itemprop="description">Introductory discussion on KL divergence with an emphasis on building intuition from the mathematics

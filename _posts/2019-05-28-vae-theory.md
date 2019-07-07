@@ -1,6 +1,6 @@
 ---
-title: "[DRAFT] Variational Autoencoder Theory"
-date: 2019-05-28
+title: "Variational Autoencoder Theory"
+date: 2019-07-07
 permalink: /vae-series/vae-theory
 tags: [machine learning]
 excerpt: "Transforming general theory into VAE-specific theory"
@@ -8,26 +8,34 @@ mathjax: true
 author_profile: true
 ---
 
-Since the seminal paper was released in 2015 the Variational Autoencoder (VAE) has become extremely popular. It was one of the first model architectures in the mainstream to establish a strong connection between deep learning and Bayesian statistics. It's also just really cool. You can synthesize new data with it and even interpret the latent dimensions it learns. A VAE trained on image data results in the ability to create spectacular visualizations of the latent factors it learns and the realistic images it can generate. In the world of data science it's an excellent bridge between statistics and computer science. It's fun to think about and tinker with, and it makes a great sandbox for curious minds to learn and build intuition about deep learning and statistics.
+This is the third post in my series: [From KL Divergence to Variational Autoencoder in PyTorch]({{ site.url }}{{ site.baseurl }}/vae-series/). The previous post in the series is [Latent Variable Models, Expectation Maximization, and Variational Inference]({{ site.url }}{{ site.baseurl }}/vae-series/variational-inference) and the next post is [Variational Autoencoder Code and Experiments]({{ site.url }}{{ site.baseurl }}/vae-series/vae-code-experiments).
+{: .notice--info}
+
+---
+
+The Variational Autoencoder has taken the machine learning community by storm since Kingma and Welling's seminal paper was released in 2013<sup>1</sup>. It was one of the first model architectures in the mainstream to establish a strong connection between deep learning and Bayesian statistics. Quite frankly, it's also just really cool. A VAE trained on image data results in the ability to create spectacular visualizations of the latent factors it learns and the realistic images it can generate. In the world of data science it's an excellent bridge between statistics and computer science. It's interesting to think about and tinker with, and it makes a great sandbox to learn and build intuition about deep learning and statistics.
 
 <figure class="half" style="display:flex">
   <img src="{{ site.url }}{{ site.baseurl }}/images/vae/datagen_final.png" height="100">
   <img src="{{ site.url }}{{ site.baseurl }}/images/vae/frey_face.png" height="100">
-  <figcaption>(left) Synthesized digits from MNIST sampled from a grid on the learned latent manifold. Notice the smooth transitions between digits. (right) Synthesized faces sampled from a grid on the manifold of a VAE trained on Frey Face dataset<sup>1</sup>. Notice that the VAE has learned interpretable latent factors: left-to-right adjusts head orientation, top-to-bottom adjusts level of frowning or smiling. </figcaption>
+  <figcaption>(left) Synthesized digits from MNIST sampled from a grid on the learned latent manifold. Notice the smooth transitions between digits. (right) Synthesized faces sampled from a grid on the manifold of a VAE trained on the Frey Face dataset<sup>1</sup>. Notice that the VAE has learned interpretable latent factors: left-to-right adjusts head orientation, top-to-bottom adjusts level of frowning or smiling. </figcaption>
 </figure>
 
-It isn't just a playground though; there are extremely valuable use cases for the VAE on real world problems. It can be used for representation learning/feature engineering/dimensionality reduction to improve performance on downstream tasks such as classification models or recommender systems. You can also leverage its probabilistic nature to perform anomaly detection. Its data generation capability lends itself to assist in the training of reinforcement learning systems.
+It isn't just a playground though; there are extremely valuable applications for the VAE on real world problems. It can be used for representation learning/feature engineering/dimensionality reduction to improve performance on downstream tasks such as classification models or recommender systems. You can also leverage its probabilistic nature to perform anomaly detection. Its data generation capability also lends itself to assist in the training of reinforcement learning systems.
 
-The VAE seems very similar to other autoencoders. At a high level, an autoencoder is a deep neural network that is trained to reconstruct its own input. There are many variations of this fundamental idea that accomplish different end tasks, such as the vanilla autoencoder, the denoising autoencoder, the sparse autoencoder, and yes, the variational autoencoder. But the VAE stands apart from the rest in that it is a fully probabilistic model.
+The VAE seems very similar to other autoencoders. At a high level, an autoencoder is a deep neural network that is trained to reconstruct its own input. There are many variations of this fundamental idea that accomplish different end tasks, such as the vanilla autoencoder, the denoising autoencoder, and the sparse autoencoder. But the VAE stands apart from the rest in that it is a fully probabilistic model.
 
 In this post we are going to introduce the theory of the VAE by building on concepts introduced in the previous post, such as variational inference and maximizing the Evidence Lower Bound (ELBO).
 
-Table of contents:
+{% capture notice-1 %}
+**Table of contents:**
 1. Derivation of the VAE objective function
 1. Intuition behind the VAE objective function
 1. Model architecture
 1. Optimization
 1. Practical uses of the VAE
+{% endcapture %}
+<div class="notice">{{ notice-1 | markdownify }}</div>
 
 ## Derivation of the VAE objective function
 
@@ -118,11 +126,11 @@ $$
 
 ## Optimization
 
-Let's first describe the overall flow and inner workings of this neural network. Data points $$x_i$$ are fed into the encoder which produces vectors of means and variances defining a factorized Gaussian distribution at the center of the network. A latent variable $$z_i$$ is then sampled from $$q_{\phi}(z \lvert x_i)$$ and fed into the decoder. The decoder outputs another set of parameters defining $$p_{\theta}(x_i \lvert z_i)$$ (as discussed previously, these parameters could be means and variances of another Gaussian, or the parameters of a multivariate Bernoulli). During training, the likelihood of the data point $$x_i$$ under $$p_{\theta}(x_i \lvert z_i)$$ can then be calculated using the Bernoulli PMF or Gaussian PDF, and maximized via gradient descent.
+Let's first describe the overall flow and inner workings of this neural network. Data points $$x_i$$ are fed into the encoder which produces vectors of means and variances defining a factorized Gaussian distribution at the center of the network. A latent variable $$z_i$$ is then sampled from $$q_{\phi}(z_i \lvert x_i)$$ and fed into the decoder. The decoder outputs another set of parameters defining $$p_{\theta}(x_i \lvert z_i)$$ (as discussed previously, these parameters could be means and variances of another Gaussian, or the parameters of a multivariate Bernoulli). During training, the likelihood of the data point $$x_i$$ under $$p_{\theta}(x_i \lvert z_i)$$ can then be calculated using the Bernoulli PMF or Gaussian PDF, and maximized via gradient descent.
 
 In addition to maximizing the data likelihood, which corresponds to the first term in the objective function, the KL divergence between the encoder distribution $$q_{\phi}(z \lvert x)$$ and the prior $$p_{\theta}(z)$$ is also minimized. Thankfully, since we have chosen Gaussians for both the prior and the approximate posterior $$q_{\phi}$$, the KL divergence term has a closed form solution which we can plug into our favorite deep learning framework.
 
-Performing gradient descent on the first term also presents additional complications. For one, computing the actual expectation over $$q_{\phi}$$ requires an intractable integral. This expectation can be approximated by sampling. The Monte Carlo approximation states that the expectation of a function can be approximated by the average value of the function across $$N_s$$ samples from the distribution:
+Performing gradient descent on the first term also presents additional complications. For one, computing the actual expectation over $$q_{\phi}$$ requires an intractable integral (i.e., computing $$\log p_{\theta}(x \lvert z)$$ for all possible values of $$z$$). Instead, this expectation is approximated by Monte Carlo sampling. The Monte Carlo approximation states that the expectation of a function can be approximated by the average value of the function across $$N_s$$ samples from the distribution:
 
 $$
 \mathbb{E_{q_{\phi}(z \lvert x)}} \log p_{\theta}(x \lvert z) \approx
@@ -138,14 +146,14 @@ Another gradient descent-related complication is the sampling step that occurs b
 Diagram of the VAE without the reparameterization trick. Dashed arrows represent the sampling operation.
 </figcaption>
 
-The neat solution to this is called the *reparameterization trick*, which moves the stochastic operation to an input layer and results in continuous linkage between the encoder and decoder allowing for backpropogation all the way through the encoder. Instead of sampling directly from the encoder $$z_i \sim q_{\phi}(z \lvert x_i)$$, we can represent $$z$$ as a deterministic function of $$x$$ and some noise $$\epsilon$$:
+The neat solution to this is called the *reparameterization trick*, which moves the stochastic operation to an input layer and results in continuous linkage between the encoder and decoder allowing for backpropogation all the way through the encoder. Instead of sampling directly from the encoder $$z_i \sim q_{\phi}(z_i \lvert x_i)$$, we can represent $$z_i$$ as a deterministic function of $$x_i$$ and some noise $$\epsilon_i$$:
 
 $$
-z_i = g_{\phi}(x_i, \epsilon) = \mu_{\phi}(x) + diag(\sigma_{\phi}(x)) \cdot \epsilon \\
-\epsilon \sim \mathcal{N}(0, I)
+z_i = g_{\phi}(x_i, \epsilon_i) = \mu_{\phi}(x_i) + diag(\sigma_{\phi}(x_i)) \cdot \epsilon_i \\
+\epsilon_i \sim \mathcal{N}(0, I)
 $$
 
-You can show that $$z$$ defined in this way follows the distribution $$q_{\phi}(z \lvert x_i)$$.
+You can show that $$z$$ defined in this way follows the distribution $$q_{\phi}(z \lvert x)$$.
 
 <img src="{{ site.url }}{{ site.baseurl }}/images/vae/architecture-with-reparam.png" alt="" width="550">{: .align-center}
 <figcaption>
@@ -159,6 +167,12 @@ Probably the most famous use of the VAE is to generate/synthesize/hallucinate ne
 Another practical use is representation learning. It is certainly possible that using the latent representation of your data will improve performance of downstream tasks, such as clustering or classification. After training the VAE you can transform your data by passing it through the encoder and taking the most probable latent vectors $$z$$ (which equates to taking the mean vector outputted from the encoder). Data outside of the training set can also be transformed by a previously-trained VAE. Of course, performance will be best when the new data is similar to the training data, i.e., comes from the same domain or natural distribution. As an extreme example, it probably wouldn't make much sense to transform medical image data using a VAE that was trained on MNIST.
 
 Yet another use is anomaly detection. There are various ways to leverage the probabilistic nature of the VAE to determine when a new data point is very improbable and therefore anomalous. For example, you could pass the new data through the encoder and measure the KL divergence between the encoder's distribution and the prior. A high KL divergence would indicate that the new data is dissimilar to the data the VAE saw during training.
+
+## Conclusion
+
+In this post we introduced the VAE and showed how it is a modern extension of the same theory that motivates the classical expectation maximization algorithm. We also derived the VAE's objective function and explained some of the intuition behind it.
+
+Some of the important details regarding the neural network architecture and optimization were discussed. We saw how the probabilistic encoder and probabilistic decoder are modeled as neural networks and how the reparameterization trick is used to allow for backpropogation through the entire network.
 
 To see the VAE in action, check out my [next post]({{ site.url }}{{ site.baseurl }}/vae-series/vae-code-experiments) which draws a strong connection between the theory presented here and actual PyTorch code and presents the results of several interesting experiments.
 
