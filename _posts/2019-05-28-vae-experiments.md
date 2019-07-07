@@ -8,7 +8,7 @@ author_profile: true
 permalink: /vae-series/vae-code-experiments
 ---
 
-This is the fourth and final post in my series: [From KL Divergence to Variational Autoencoder in PyTorch]({{ site.url }}{{ site.baseurl }}/vae-series/). The previous post in the series is [Variational Autoencoder Theory]({{ site.url }}{{ site.baseurl }}/vae-series/vae-theory).
+This is the fourth and final post in my series: [From KL Divergence to Variational Autoencoder in PyTorch]({{ site.url }}{{ site.baseurl }}/vae-series). The previous post in the series is [Variational Autoencoder Theory]({{ site.url }}{{ site.baseurl }}/vae-series/vae-theory).
 {: .notice--info}
 
 ---

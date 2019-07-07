@@ -8,7 +8,7 @@ author_profile: true
 permalink: /vae-series/variational-inference
 ---
 
-This is the second post in my series: [From KL Divergence to Variational Autoencoder in PyTorch]({{ site.url }}{{ site.baseurl }}/vae-series/). The previous post in the series is [A Quick Primer on KL Divergence]({{ site.url }}{{ site.baseurl }}/vae-series/kl-divergence) and the next post is [Variational Autoencoder Theory]({{ site.url }}{{ site.baseurl }}/vae-series/vae-theory).
+This is the second post in my series: [From KL Divergence to Variational Autoencoder in PyTorch]({{ site.url }}{{ site.baseurl }}/vae-series). The previous post in the series is [A Quick Primer on KL Divergence]({{ site.url }}{{ site.baseurl }}/vae-series/kl-divergence) and the next post is [Variational Autoencoder Theory]({{ site.url }}{{ site.baseurl }}/vae-series/vae-theory).
 {: .notice--info}
 
 ---

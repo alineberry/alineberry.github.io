@@ -8,7 +8,7 @@ mathjax: true
 author_profile: true
 ---
 
-This is the third post in my series: [From KL Divergence to Variational Autoencoder in PyTorch]({{ site.url }}{{ site.baseurl }}/vae-series/). The previous post in the series is [Latent Variable Models, Expectation Maximization, and Variational Inference]({{ site.url }}{{ site.baseurl }}/vae-series/variational-inference) and the next post is [Variational Autoencoder Code and Experiments]({{ site.url }}{{ site.baseurl }}/vae-series/vae-code-experiments).
+This is the third post in my series: [From KL Divergence to Variational Autoencoder in PyTorch]({{ site.url }}{{ site.baseurl }}/vae-series). The previous post in the series is [Latent Variable Models, Expectation Maximization, and Variational Inference]({{ site.url }}{{ site.baseurl }}/vae-series/variational-inference) and the next post is [Variational Autoencoder Code and Experiments]({{ site.url }}{{ site.baseurl }}/vae-series/vae-code-experiments).
 {: .notice--info}
 
 ---
