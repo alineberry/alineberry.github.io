@@ -73,7 +73,7 @@ plt.show()
 ```
 
 
-![png]({{ site.url }}{{ site.baseurl }}/images/2019-05-20-how-auroc-is-calculated/output_3_0.png)
+![png]({{ site.url }}{{ site.baseurl }}/images/2019-05-20-how-auroc-is-calculated/output_3_0.png){: .align-center}
 
 
 
