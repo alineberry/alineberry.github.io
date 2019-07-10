@@ -2,7 +2,7 @@
 title: "About"
 permalink: /about/
 header:
-  image: "/images/snow_mountains.jpg"
+  image: "images/denver-from52.jpg"
 ---
 
 I'm a Data Scientist at Transamerica on the Advanced Analytics team located in Denver, CO. I work on projects spanning an array of subject matters, including natural language processing, deep learning, representation learning, fraud detection, etc. I vet projects during initial stages, perform exploratory data analysis, select and tune model architectures, and write production code.
