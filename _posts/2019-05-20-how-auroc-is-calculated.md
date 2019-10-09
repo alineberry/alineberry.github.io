@@ -20,13 +20,13 @@ Before jumping into the code, let's take a stroll down conversation street and p
 <img src="{{ site.url }}{{ site.baseurl }}/images/2019-05-20-how-auroc-is-calculated/700px-Precisionrecall.svg.png" alt="" height="100" width="300">{: .align-center}
 <figcaption>Binary Classification Space</figcaption>
 
-The idealized ROC curve is continuous across all possible classification thresholds. Points that are plotted on the ROC curve correspond to particular classification thresholds $$T \in [-\infty, \infty]$$. In the real world we are dealing with a discrete number of data points with which we would like to estimate the ROC curve for a classifier of interest. This manifests itself in ROC curves that can look a bit jumpy rather than smooth. Instead of considering all possible thresholds, we only have $$N$$ thresholds to consider, where $$N$$ is the number of data points in the dataset we are evaluating.
+The idealized ROC curve is continuous across all possible classification thresholds. Points that are plotted on the ROC curve correspond to particular classification thresholds $$T \in (-\infty, \infty)$$. In the real world we are dealing with a discrete number of data points with which we would like to estimate the ROC curve for a classifier of interest. This manifests itself in ROC curves that can look a bit jumpy rather than smooth. Instead of considering all possible thresholds, we only have $$N$$ thresholds to consider, where $$N$$ is the number of data points in the dataset we are evaluating.
 
 The way I like to think about calculating ROC and AUC is to consider a simple table with columns for $$Y$$ and $$\hat{Y}$$, sorted descending by $$\hat{Y}$$. You then iterate over rows of this table and the threshold you consider at any given moment is wherever the cursor of your iterator is. There is no need to quantify this threshold (e.g., $$T=0.75$$), it is simply something that classifies all data points above it as the positive class and all data points below it as the negative class. From here it is easy to calculate and record the FPR and TPR for this threshold. This (FPR, TPR) pair will then become a data point plotted on the ROC curve. When you are finished iterating over your data points, you have $$N$$ (FPR, TPR) data points which are plotted to form the full ROC curve. This exact algorithm is implemented in code later in this post.
 
-The only thing that matters in calculating the ROC curve and its AUC is the rank ordering of the predictions. Typically, normalized model outputs $$p \in [0, 1]$$ are used for this, but as I will show in this post, unnormalized model outputs, such as outputs from a linear layer before sigmoid application,  $$s \in [-\infty, \infty]$$ are equally valid.
+The only thing that matters in calculating the ROC curve and its AUC is the rank ordering of the predictions. Typically, normalized model outputs $$p \in [0, 1]$$ are used for this, but as I will show in this post, unnormalized model outputs, such as outputs from a linear layer before sigmoid application,  $$s \in (-\infty, \infty)$$ are equally valid.
 
-A common mistake to be avoided at all costs is calculating AUC using binarized predictions, e.g., $$\hat{Y} \in \{0, 1\}$$ instead of scores or probabilities $$\hat{Y} \in [-\infty, \infty]$$. The scary thing about this mistake is that most implementations like scikit-learn's `roc_auc_score` will not throw an error. The computation can still be performed, but the critical sorting step doesn't make sense anymore and the result will be something... strange.
+A common mistake to be avoided at all costs is calculating AUC using binarized predictions, e.g., $$\hat{Y} \in \{0, 1\}$$ instead of scores or probabilities $$\hat{Y} \in (-\infty, \infty)$$. The scary thing about this mistake is that most implementations like scikit-learn's `roc_auc_score` will not throw an error. The computation can still be performed, but the critical sorting step doesn't make sense anymore and the result will be something... strange.
 
 Many references will describe the computation of the area under the ROC curve using an integral and leave it at that. An integral may be a technically correct description, but it doesn't give the reader any intuition about how this area calculation is actually performed. It's actually quite simple. Once you understand the algorithm described above, you can see that the ROC curve itself is really just a bunch of right angles. Thus, the area under the curve can be calculated as the sum of the area of several rectangles.
 
@@ -266,7 +266,7 @@ roc_auc_score(y_valid, valid_probas)
 # 0.9759615384615384
 ```
 
-In contrast, calculate the AUC using the unnormalized outputs $$\hat{Y} \in [-\infty, \infty]$$. Notice that the AUC is exactly the same.
+In contrast, calculate the AUC using the unnormalized outputs $$\hat{Y} \in (-\infty, \infty)$$. Notice that the AUC is exactly the same.
 
 ```python
 roc_auc_score(y_valid, valid_scores)
