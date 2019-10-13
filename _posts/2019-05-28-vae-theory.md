@@ -77,7 +77,7 @@ It's easy to get get lost in the weeds here, so let's zoom back out to the big p
 
 The practical items we would like to extract from this model are the ability to map data into latent space using $$q_{\phi}(z \lvert x)$$ for exploration and/or dimensionality reduction, and the ability to synthesize new data by sampling from the latent space according to $$p_{\theta}(z)$$ and then generating new data from $$p_{\theta}(x \lvert z)$$.
 
-Now, let’s begin unpacking the objective function by defining the prior on $$z$$. The VAE sets this prior to a factorized unit Gaussian: $$p_{\theta}(z) = \mathcal{N}(0, I)$$. It can be shown that a simple Gaussian such as this can be mapped into very complicated distributions as long as the mapping function is sufficiently complex (e.g. a neural network)<sup>2</sup>. This choice also simplifies the optimization problem as we will see shortly.
+Now, let’s begin unpacking the objective function by defining the prior on $$z$$. The VAE sets this prior to a diagonal unit Gaussian: $$p_{\theta}(z) = \mathcal{N}(0, I)$$. It can be shown that a simple Gaussian such as this can be mapped into very complicated distributions as long as the mapping function is sufficiently complex (e.g. a neural network)<sup>2</sup>. This choice also simplifies the optimization problem as we will see shortly.
 
 Next, let’s discuss the first term in the objective.
 
@@ -93,7 +93,7 @@ This term is commonly interpreted as a form of regularization. It prevents the m
 
 ## Model architecture
 
-We choose $$q_{\phi}(z \lvert x)$$ to be an infinite mixture of factorized multivariate Gaussians
+We choose $$q_{\phi}(z \lvert x)$$ to be an infinite mixture of diagonal multivariate Gaussians
 
 $$
 q_{\phi}(z \lvert x) = \mathcal{N}(\mu_{\phi}(x), diag(\sigma^2_{\phi}(x)))
@@ -103,7 +103,7 @@ Where the Gaussian parameters $$\mu$$ and $$s^2$$ are modeled as parametric func
 
 The VAE models the parameters of $$q$$, $$\{\mu_{\phi}(x), \sigma^2_{\phi}(x)\}$$, with a neural network that outputs a vector of means $$\mu$$ and a vector of variances $$\sigma^2$$ for each data point $$x_i$$.
 
-Similarly, the distribution $$p_{\theta}(x \lvert z)$$ is modeled as an infinite mixture of factorized distributions, where a neural network outputs parameters of the distribution. Depending on the type of data, this distribution is typically chosen to be Gaussian or Bernoulli. When working with binary data (like in the next post) the Bernoulli is used:
+Similarly, the distribution $$p_{\theta}(x \lvert z)$$ is modeled as an infinite mixture of diagonal distributions, where a neural network outputs parameters of the distribution. Depending on the type of data, this distribution is typically chosen to be Gaussian or Bernoulli. When working with binary data (like in the next post) the Bernoulli is used:
 
 $$
 p_{\theta}(x \lvert z) = \mathcal{Bern}(h_{\theta}(z))
@@ -126,7 +126,7 @@ $$
 
 ## Optimization
 
-Let's first describe the overall flow and inner workings of this neural network. Data points $$x_i$$ are fed into the encoder which produces vectors of means and variances defining a factorized Gaussian distribution at the center of the network. A latent variable $$z_i$$ is then sampled from $$q_{\phi}(z_i \lvert x_i)$$ and fed into the decoder. The decoder outputs another set of parameters defining $$p_{\theta}(x_i \lvert z_i)$$ (as discussed previously, these parameters could be means and variances of another Gaussian, or the parameters of a multivariate Bernoulli). During training, the likelihood of the data point $$x_i$$ under $$p_{\theta}(x_i \lvert z_i)$$ can then be calculated using the Bernoulli PMF or Gaussian PDF, and maximized via gradient descent.
+Let's first describe the overall flow and inner workings of this neural network. Data points $$x_i$$ are fed into the encoder which produces vectors of means and variances defining a diagonal Gaussian distribution at the center of the network. A latent variable $$z_i$$ is then sampled from $$q_{\phi}(z_i \lvert x_i)$$ and fed into the decoder. The decoder outputs another set of parameters defining $$p_{\theta}(x_i \lvert z_i)$$ (as discussed previously, these parameters could be means and variances of another Gaussian, or the parameters of a multivariate Bernoulli). During training, the likelihood of the data point $$x_i$$ under $$p_{\theta}(x_i \lvert z_i)$$ can then be calculated using the Bernoulli PMF or Gaussian PDF, and maximized via gradient descent.
 
 In addition to maximizing the data likelihood, which corresponds to the first term in the objective function, the KL divergence between the encoder distribution $$q_{\phi}(z \lvert x)$$ and the prior $$p_{\theta}(z)$$ is also minimized. Thankfully, since we have chosen Gaussians for both the prior and the approximate posterior $$q_{\phi}$$, the KL divergence term has a closed form solution which we can plug into our favorite deep learning framework.
 

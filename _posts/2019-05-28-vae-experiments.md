@@ -32,7 +32,7 @@ $$
 
 The basic intuition behind this objective is that the first term acts as a reconstruction loss and the KL term acts as a regularizer. This intuition is discussed in much more detail in the previous post.
 
-The VAE sets a unit factorized Gaussian prior on the latent variable: $$p_{\theta}(z) = \mathcal{N}(0, I)$$, and learns the distributions $$q_{\phi}(z \lvert x)$$ and $$p_{\theta}(x \lvert z)$$ jointly in a single neural network. The first half of the network that maps data into a distribution over latent space is known as the *probabilistic encoder*. The second half of the network that maps samples from the latent space back into the original space is known as the *probabilistic decoder*.
+The VAE sets a unit diagonal Gaussian prior on the latent variable: $$p_{\theta}(z) = \mathcal{N}(0, I)$$, and learns the distributions $$q_{\phi}(z \lvert x)$$ and $$p_{\theta}(x \lvert z)$$ jointly in a single neural network. The first half of the network that maps data into a distribution over latent space is known as the *probabilistic encoder*. The second half of the network that maps samples from the latent space back into the original space is known as the *probabilistic decoder*.
 
 <img src="{{ site.url }}{{ site.baseurl }}/images/vae/vae-architecture.png" alt="">{: .align-center}
 <figcaption>Illustration of the VAE model architecture<sup>3</sup></figcaption>
@@ -47,7 +47,7 @@ The first term of the ELBO objective is the expected reconstruction probability:
 
 $$\mathbb{E_{q_{\phi}(z \lvert x)}} \log p_{\theta}(x \lvert z)$$
 
-Since the data is binary in this experiment, we will construct $$p_{\theta}(x \lvert z)$$ to model a multivariate factorized Bernoulli distribution. (Note, the distribution chosen to model the reconstruction is dataset-specific. If you have continuous data then a factorized Gaussian may be more appropriate.) This means that, for each data point, we view the 784 binary pixels values as independent Bernoulli observations. As such, the decoder network will output 784 Bernoulli parameters. The Bernoulli parameter is the probability of success in a binary outcome trial $$p \in [0, 1]$$ (e.g., the probability of heads when flipping a biased coin).
+Since the data is binary in this experiment, we will construct $$p_{\theta}(x \lvert z)$$ to model a multivariate factorized Bernoulli distribution. (Note, the distribution chosen to model the reconstruction is dataset-specific. If you have continuous data then a diagonal Gaussian may be more appropriate.) This means that, for each data point, we view the 784 binary pixels values as independent Bernoulli observations. As such, the decoder network will output 784 Bernoulli parameters. The Bernoulli parameter is the probability of success in a binary outcome trial $$p \in [0, 1]$$ (e.g., the probability of heads when flipping a biased coin).
 
 Let's take the $$j^{th}$$ pixel of the $$i^{th}$$ image as an example and call it $$x_{ij}$$. Since we're dealing with binary pixel values, $$x_{ij} \in \{0,1\}$$ can be interpreted as the result of a Bernoulli trial. The model's output will be the Bernoulli parameter corresponding to that pixel; let's call that specific output $$p_{ij} \in [0,1]$$. The likelihood of that pixel $$p_{\theta}(x_{ij} \lvert z_i)$$ is then given by the Bernoulli PMF:
 
@@ -85,7 +85,7 @@ $$
 -KL[q_{\phi}(z \lvert x) \lVert p_{\theta}(z)]
 $$
 
-Since we have defined the prior to be a factorized unit Gaussian and we have defined the variational posterior to also be a factorized Gaussian, this KL term has a clean closed-form solution. The solution is essentially just a function of the means and covariances of the two distributions. The negative KL term simplifies to
+Since we have defined the prior to be a diagonal unit Gaussian and we have defined the variational posterior to also be a diagonal Gaussian, this KL term has a clean closed-form solution. The solution is essentially just a function of the means and covariances of the two distributions. The negative KL term simplifies to
 
 $$
 -\frac{1}{2} \sum_{j=1}^{J} (1 + \log \sigma_j^2 - \mu_j^2 - \sigma_j^2)
@@ -272,7 +272,7 @@ The encoder and decoder modules are defined separately as `VAEEncoder` and `Bern
 class VAEEncoder(nn.Module):
     """
     Standard encoder module for variational autoencoders with tabular input and
-    factorized Gaussian posterior.
+    diagonal Gaussian posterior.
     """
     def __init__(self, data_size, hidden_sizes, latent_size):
         """
@@ -316,7 +316,7 @@ class VAEEncoder(nn.Module):
 
 class BernoulliVAEDecoder(nn.Module):
     """
-    VAE decoder module that models a factorized multivariate Bernoulli
+    VAE decoder module that models a diagonal multivariate Bernoulli
     distribution with a feed-forward neural net.
     """
     def __init__(self, data_size, hidden_sizes, latent_size):
