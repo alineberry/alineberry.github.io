@@ -3,7 +3,7 @@ title: "Variational Autoencoder Theory"
 date: 2019-07-07
 permalink: /vae-series/vae-theory
 tags: [machine learning]
-excerpt: "Transforming general theory into VAE-specific theory"
+excerpt: "Formulation of the VAE objective, neural network architecture design, optimization, and practical uses"
 mathjax: true
 author_profile: true
 ---

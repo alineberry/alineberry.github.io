@@ -2,7 +2,7 @@
 title: "A Quick Primer on KL Divergence"
 date: 2019-07-07
 tags: [machine learning]
-excerpt: "Introductory discussion on KL divergence with an emphasis on building intuition from the mathematics"
+excerpt: "Intuitive introduction to KL divergence, including discussion on its asymmetry"
 mathjax: true
 author_profile: true
 permalink: /vae-series/kl-divergence
