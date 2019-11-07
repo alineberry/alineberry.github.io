@@ -2,7 +2,7 @@
 title: "Variational Autoencoder Code and Experiments"
 date: 2019-07-07
 tags: [machine learning]
-excerpt: "Detailed walkthrough of a PyTorch implementation of a VAE trained on MNIST, including visualizations of data generation, reconstruction, and anomaly detection"
+excerpt: "Detailed walkthrough of a PyTorch VAE implementation trained on MNIST, including visualizations of data generation, reconstruction, and anomaly detection"
 mathjax: true
 author_profile: true
 permalink: /vae-series/vae-code-experiments

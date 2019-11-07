@@ -2,7 +2,7 @@
 title: "Latent Variable Models, Expectation Maximization, and Variational Inference"
 date: 2019-07-07
 tags: [machine learning]
-excerpt: "Introduction to latent variable models, derivation of the ELBO, and discussion on the relationship with Expectation Maximization"
+excerpt: "Introduction to latent variable models, derivation of the ELBO, and the relationship with Expectation Maximization"
 mathjax: true
 author_profile: true
 permalink: /vae-series/variational-inference

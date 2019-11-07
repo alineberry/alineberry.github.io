@@ -2,7 +2,7 @@
 title: "Interesting Details about ROC Curve Calculations"
 date: 2019-05-20
 tags: [machine learning]
-excerpt: "Code-based walkthrough showing how AUC is computed for a model trained on a simple dataset"
+excerpt: "Code-based walkthrough showing how AUC is computed for a simple model trained on a simple dataset"
 mathjax: true
 ---
 
