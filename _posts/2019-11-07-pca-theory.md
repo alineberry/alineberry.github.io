@@ -1,8 +1,7 @@
 ---
-title: "PCA Theory"
+title: "Notes on PCA Theory"
 date: 2019-11-07
 tags: [machine learning]
-excerpt: "something"
 mathjax: true
 author_profile: true
 ---
@@ -70,34 +69,12 @@ Note that this maximizes the variance of the projections onto $$\mathbf{v}$$.
 Assemble the $$ \mathbf{x}_i $$'s into a matrix:
 
 $$
-\rule[.5ex]{2.5ex}{0.5pt}
-$$
-
-$$
-\newcommand*{\horzbar}{\rule[.5ex]{2.5ex}{0.5pt}}
 \mathbf{X} =
 \begin{bmatrix}
-\mathbf{x}_1
-\end{bmatrix}
-$$
-
-$$
-\mathbf{X} =
-\begin{bmatrix}
-\horzbar & \mathbf{x}_1 & \horzbar \\
-\horzbar & \mathbf{x}_2 & \horzbar \\
-\\vdots \\
-\horzbar & \mathbf{x}_n & \horzbar
-\end{bmatrix}
-$$
-
-$$
-\mathbf{Xv} =
-\begin{bmatrix}
-\langle \mathbf{x}_1, \mathbf{v} \rangle \\
-\langle \mathbf{x}_2, \mathbf{v} \rangle \\
+-\mathbf{x}_1- \\
+-\mathbf{x}_2- \\
 \vdots \\
-\langle \mathbf{x}_n, \mathbf{v} \rangle
+-\mathbf{x}_n-
 \end{bmatrix}
 $$
 
@@ -123,20 +100,23 @@ $$
 Diagonal matrices expand space along the standard axes (ie, in the directions of the standard basis vectors).
 
 <img src="{{ site.url }}{{ site.baseurl }}/images/pca/diagonal-expansion.png" alt="" width="400">{: .align-center}
-<figcaption>How a diagonal matrix expands space</figcaption>
+<figcaption>How a diagonal matrix expands space<sup>2</sup></figcaption>
 
-I won't prove it here, but an important note for the rest of the derivation is the fact that the solution to $$\mathrm{argmax}_\mathbf{v} \; \mathbf{v}^\top \mathbf{Dv} $$ is the standard basis vector corresponding to the dimension with the largest diagonal entry in $$\mathbf{D}$$.
+I won't prove it here, but an important note for the rest of the derivation is the fact that the solution to $$\mathrm{argmax}_\mathbf{v} \; \mathbf{v}^\top \mathbf{Dv} $$ for a diagonal matrix $$\mathbf{D}$$ is the standard basis vector corresponding to the dimension with the largest diagonal entry in $$\mathbf{D}$$.
 
-A symmetric matrix can be expressed as a diagonal sandwiched between a rotation matrix.
+Every symmetric matrix can be expressed as a diagonal sandwiched between an orthogonal matrix<sup>[[source](https://en.wikipedia.org/wiki/Symmetric_matrix#Decomposition)]</sup>. The lecture notes consider the case where $$\mathbf{Q}$$ is a rotation matrix, but note that orthogonal matrices can take on other forms such as reflections and permutations.
 
 $$
-\mathbf{A} = \mathbf{QDQ}^\top
+\begin{align}
+\mathbf{A} &= \mathbf{QDQ}^\top \\
+\mathbf{X}^\top \mathbf{X} &= \mathbf{QDQ}^\top
+\end{align}
 $$
 
 This means that symmetric matrices still expand space orthogonally, but in directions rotated from the standard basis.
 
 <img src="{{ site.url }}{{ site.baseurl }}/images/pca/symmetric-expansion.png" alt="" width="400">{: .align-center}
-<figcaption>How a symmetric matrix expands space</figcaption>
+<figcaption>How a symmetric matrix expands space<sup>2</sup></figcaption>
 
 ## Eigenvectors
 
