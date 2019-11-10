@@ -4,6 +4,7 @@ date: 2019-11-07
 tags: [machine learning]
 mathjax: true
 author_profile: true
+excerpt: "These are non-comprehensive notes on the theoretical machinery behind Principal Component Analysis (PCA)"
 ---
 
 These are non-comprehensive notes on the theoretical machinery behind Principal Component Analysis (PCA). This post is essentially an abridged summary of Tim Roughgarden and Gregory Valiant's lecture notes for Stanford CS168<sup>1,2</sup>.
