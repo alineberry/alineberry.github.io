@@ -106,7 +106,7 @@ $$
 \end{align}
 $$
 
-Looking at Eq. 2 and noting that KL divergence is non-negative, you can see that $$\mathcal{L}$$ must be lower bound for the marginal log likelihood: $$\mathcal{L} \leq \log p_{\theta}(x)$$. Variational inference methods focus on the tractable task of maximizing the ELBO instead of maximizing the likelihood directly.
+Looking at Eq. 2 and noting that KL divergence is non-negative, you can see that $$\mathcal{L}$$ must be a lower bound for the marginal log likelihood: $$\mathcal{L} \leq \log p_{\theta}(x)$$. Variational inference methods focus on the tractable task of maximizing the ELBO instead of maximizing the likelihood directly.
 
 ## Expectation Maximization
 
