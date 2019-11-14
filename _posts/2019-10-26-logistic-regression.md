@@ -2,9 +2,9 @@
 title: "Logistic Regression Deep Dive"
 date: 2019-10-26
 tags: [machine learning]
-excerpt: "..."
+excerpt: "Derivation of objective and gradient, visualizing a gradient update"
 mathjax: true
-author_profile: false
+author_profile: true
 ---
 
 Logistic regression is possibly the most well-known machine learning model for classification tasks. The classic case is binary classification, but it can easily be extended to multiclass or even multilabel classification settings. It's quite popular in the data science, machine learning, and statistics community for many reasons:
@@ -86,7 +86,7 @@ $$
 \nabla_w J &= \nabla_w y \log \sigma + \nabla_w (1-y) \log (1-\sigma) \\
 &= \frac{y}{\sigma}\nabla_w\sigma + \frac{1-y}{1-\sigma}\nabla_w(1-\sigma) \\
 &= \frac{y}{\sigma}\nabla_w\sigma - \frac{1-y}{1-\sigma}\nabla_w\sigma \\
-&= (\frac{y}{\sigma} - \frac{1-y}{1-\sigma})\nabla_w\sigma \\
+&= \bigg(\frac{y}{\sigma} - \frac{1-y}{1-\sigma}\bigg)\nabla_w\sigma \\
 &= \frac{y(1-\sigma) - (1-y)\sigma}{\sigma(1-\sigma)} \nabla_w\sigma \\
 &= \frac{y - \sigma y - \sigma + \sigma y}{\sigma(1-\sigma)} \nabla_w\sigma \\
 &= \frac{y - \sigma}{\sigma(1-\sigma)}\nabla_w\sigma \\
