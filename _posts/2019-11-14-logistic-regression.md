@@ -1,6 +1,6 @@
 ---
 title: "Logistic Regression Deep Dive"
-date: 2019-10-26
+date: 2019-11-14
 tags: [machine learning]
 excerpt: "Derivation of objective and gradient, visualizing a gradient update"
 mathjax: true
