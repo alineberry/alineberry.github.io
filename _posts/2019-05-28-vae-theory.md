@@ -109,6 +109,8 @@ $$
 p_{\theta}(x \lvert z) = \mathcal{Bern}(h_{\theta}(z))
 $$
 
+Where $$h_{\theta}(z)$$ is an MLP mapping from the latent dimension to the data dimension. The output vector of $$h_{\theta}(z)$$ contains Bernoulli parameters that are used to form the probability distribution $$p_{\theta}(x \lvert z)$$.
+
 Distributions $$p_{\theta}(x \lvert z)$$ and $$q_{\phi}(z \lvert x)$$ are learned jointly in the same neural network:
 
 <img src="{{ site.url }}{{ site.baseurl }}/images/vae/vae-architecture.png" alt="">{: .align-center}
@@ -128,7 +130,7 @@ $$
 
 Let's first describe the overall flow and inner workings of this neural network. Data points $$x_i$$ are fed into the encoder which produces vectors of means and variances defining a diagonal Gaussian distribution at the center of the network. A latent variable $$z_i$$ is then sampled from $$q_{\phi}(z_i \lvert x_i)$$ and fed into the decoder. The decoder outputs another set of parameters defining $$p_{\theta}(x_i \lvert z_i)$$ (as discussed previously, these parameters could be means and variances of another Gaussian, or the parameters of a multivariate Bernoulli). During training, the likelihood of the data point $$x_i$$ under $$p_{\theta}(x_i \lvert z_i)$$ can then be calculated using the Bernoulli PMF or Gaussian PDF, and maximized via gradient descent.
 
-In addition to maximizing the data likelihood, which corresponds to the first term in the objective function, the KL divergence between the encoder distribution $$q_{\phi}(z \lvert x)$$ and the prior $$p_{\theta}(z)$$ is also minimized. Thankfully, since we have chosen Gaussians for both the prior and the approximate posterior $$q_{\phi}$$, the KL divergence term has a closed form solution which we can plug into our favorite deep learning framework.
+In addition to maximizing the data likelihood, which corresponds to the first term in the objective function, the KL divergence between the encoder distribution $$q_{\phi}(z \lvert x)$$ and the prior $$p_{\theta}(z)$$ is also minimized. Thankfully, since we have chosen Gaussians for both the prior and the approximate posterior $$q_{\phi}$$, the KL divergence term has a closed form solution which can be optimized directly.
 
 Performing gradient descent on the first term also presents additional complications. For one, computing the actual expectation over $$q_{\phi}$$ requires an intractable integral (i.e., computing $$\log p_{\theta}(x \lvert z)$$ for all possible values of $$z$$). Instead, this expectation is approximated by Monte Carlo sampling. The Monte Carlo approximation states that the expectation of a function can be approximated by the average value of the function across $$N_s$$ samples from the distribution:
 
@@ -139,7 +141,7 @@ $$
 
 In the case of the VAE we approximate the expectation using the single sample from $$q_{\phi}(z \lvert x)$$ that we've already discussed. This is an unbiased estimate that converges over the training loop.
 
-Another gradient descent-related complication is the sampling step that occurs between the encoder and the decoder. Without getting into the details, directly sampling $$z$$ from $$q_{\phi}(z \lvert x)$$ introduces a discontinuity that backpropogation cannot backpropogate through.
+Another gradient descent-related complication is the sampling step that occurs between the encoder and the decoder. Without getting into the details, directly sampling $$z$$ from $$q_{\phi}(z \lvert x)$$ introduces a discontinuity that cannot be backpropogated through.
 
 <img src="{{ site.url }}{{ site.baseurl }}/images/vae/architecture-no-reparam.png" alt="" width="500">{: .align-center}
 <figcaption>
@@ -166,7 +168,10 @@ Probably the most famous use of the VAE is to generate/synthesize/hallucinate ne
 
 Another practical use is representation learning. It is certainly possible that using the latent representation of your data will improve performance of downstream tasks, such as clustering or classification. After training the VAE you can transform your data by passing it through the encoder and taking the most probable latent vectors $$z$$ (which equates to taking the mean vector outputted from the encoder). Data outside of the training set can also be transformed by a previously-trained VAE. Of course, performance will be best when the new data is similar to the training data, i.e., comes from the same domain or natural distribution. As an extreme example, it probably wouldn't make much sense to transform medical image data using a VAE that was trained on MNIST.
 
-Yet another use is anomaly detection. There are various ways to leverage the probabilistic nature of the VAE to determine when a new data point is very improbable and therefore anomalous. For example, you could pass the new data through the encoder and measure the KL divergence between the encoder's distribution and the prior. A high KL divergence would indicate that the new data is dissimilar to the data the VAE saw during training.
+Yet another use is anomaly detection. There are various ways to leverage the probabilistic nature of the VAE to determine when a new data point is very improbable and therefore anomalous. Some examples:
+- Pass the new data through the encoder and measure the KL divergence between the encoder's distribution and the prior. A high KL divergence would indicate that the new data is dissimilar to the data the VAE saw during training.
+- Pass the new data through the full VAE and measure the reconstruction probability. Data with a very low reconstruction probability is dissimilar from the training set.
+- With some additional work it's possible compute the actual log likelihood $$\log p_{\theta}(x)$$ for new data. This approach requires leveraging importance sampling to efficiently compute a new expectation. Look out for more details on this approach in a future post.
 
 ## Conclusion
 
