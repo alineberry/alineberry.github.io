@@ -99,7 +99,7 @@ $$
 q_{\phi}(z \lvert x) = \mathcal{N}(\mu_{\phi}(x), diag(\sigma^2_{\phi}(x)))
 $$
 
-Where the Gaussian parameters $$\mu$$ and $$s^2$$ are modeled as parametric functions of $$x$$. Note that $$\sigma^2$$ is a vector of the diagonal elements of the covariance matrix. This choice provides us with a flexible distribution on $$z$$ which is data point-specific because of its explicit conditioning on  $$x$$.
+Where the Gaussian parameters $$\mu$$ and $$\sigma^2$$ are modeled as parametric functions of $$x$$. Note that $$\sigma^2$$ is a vector of the diagonal elements of the covariance matrix. This choice provides us with a flexible distribution on $$z$$ which is data point-specific because of its explicit conditioning on  $$x$$.
 
 The VAE models the parameters of $$q$$, $$\{\mu_{\phi}(x), \sigma^2_{\phi}(x)\}$$, with a neural network that outputs a vector of means $$\mu$$ and a vector of variances $$\sigma^2$$ for each data point $$x_i$$.
 
