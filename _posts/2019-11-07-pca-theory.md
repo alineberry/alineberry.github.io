@@ -1,10 +1,12 @@
 ---
 title: "Notes on PCA Theory"
+permalink: /notes/pca
 date: 2019-11-07
 tags: [machine learning]
 mathjax: true
 author_profile: true
 excerpt: "These are non-comprehensive notes on the theoretical machinery behind Principal Component Analysis (PCA)"
+is_note: true
 ---
 
 These are non-comprehensive notes on the theoretical machinery behind Principal Component Analysis (PCA). This post is essentially an abridged summary of Tim Roughgarden and Gregory Valiant's lecture notes for Stanford CS168<sup>1,2</sup>.
@@ -98,7 +100,7 @@ $$
 
 ## Understanding $$\mathbf{A}$$
 
-Diagonal matrices expand space along the standard axes (ie, in the directions of the standard basis vectors).
+Diagonal matrices (ie, zero everywhere except the diagonal) expand space along the standard axes (ie, in the directions of the standard basis vectors).
 
 <img src="{{ site.url }}{{ site.baseurl }}/images/pca/diagonal-expansion.png" alt="" width="400">{: .align-center}
 <figcaption>How a diagonal matrix expands space<sup>2</sup></figcaption>
@@ -133,7 +135,7 @@ Now consider the eigenvectors and eigenvalues of $$\mathbf{A}$$. We know that $$
 
 As discussed previously, the solution is the unit vector pointing in the direction of maximum stretch. This is an eigenvector of $$\mathbf{A}$$.
 
-Now consider the PCA objective:
+Now consider the PCA objective and remember that if $$\mathbf{v}$$ is a unit vector and an eigenvector of $$\mathbf{A}$$ then $$\mathbf{Av} = \lambda_{\mathbf{v}} \mathbf{v}$$ and $$\mathbf{v}^\top \mathbf{v} = 1$$:
 
 $$
 \begin{align}
