@@ -6,30 +6,50 @@ interface Props {
   title: string;
   description?: string;
   ogImage?: string;
+  ogType?: 'website' | 'article';
+  publishedTime?: Date;
+  tags?: string[];
 }
-const { title, description, ogImage } = Astro.props;
+const {
+  title,
+  description,
+  ogImage,
+  ogType = 'website',
+  publishedTime,
+  tags = [],
+} = Astro.props;
+
 const canonical = new URL(Astro.url.pathname, Astro.site).toString();
-const desc = description ?? "Notes and writing on machine learning, by Adam Lineberry.";
-const image = new URL(ogImage ?? '/images/headshot2.jpeg', Astro.site).toString();
+const desc = description ?? 'Notes and writing on machine learning, by Adam Lineberry.';
+const image = new URL(ogImage ?? '/og-default.png', Astro.site).toString();
 ---
 
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="generator" content={Astro.generator} />
+<meta name="theme-color" content="#0a0908" />
 <link rel="canonical" href={canonical} />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
 <title>{title}</title>
 <meta name="description" content={desc} />
 <meta name="author" content="Adam Lineberry" />
 
-<meta property="og:type" content="website" />
+<meta property="og:type" content={ogType} />
 <meta property="og:site_name" content="Adam Lineberry" />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={desc} />
 <meta property="og:url" content={canonical} />
 <meta property="og:image" content={image} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+{ogType === 'article' && publishedTime && (
+  <meta property="article:published_time" content={publishedTime.toISOString()} />
+)}
+{ogType === 'article' && <meta property="article:author" content="Adam Lineberry" />}
+{ogType === 'article' && tags.map((t) => <meta property="article:tag" content={t} />)}
 
 <meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:creator" content="@adamlineberryML" />
 <meta name="twitter:title" content={title} />
 <meta name="twitter:description" content={desc} />
 <meta name="twitter:image" content={image} />
@@ -37,9 +57,18 @@ const image = new URL(ogImage ?? '/images/headshot2.jpeg', Astro.site).toString(
 <link rel="alternate" type="application/rss+xml" title="Adam Lineberry" href="/rss.xml" />
 <link rel="sitemap" href="/sitemap-index.xml" />
 
+<!-- Async-loaded fonts (no render block); fallback stack covers FOUT cleanly -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link
   rel="stylesheet"
-  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,wght@0,400..800;1,400..800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+  media="print"
+  onload="this.media='all'"
 />
+<noscript>
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,wght@0,400..800;1,400..800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+  />
+</noscript>

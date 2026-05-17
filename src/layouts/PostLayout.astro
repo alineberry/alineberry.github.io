@@ -11,25 +11,29 @@ interface Props {
 }
 const { title, description, date, tags = [], minutes, isNote = false } = Astro.props;
 const dateStr = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+const kicker = isNote ? 'Note' : 'Essay';
 ---
 
-<BaseLayout title={`${title} — Adam Lineberry`} description={description}>
+<BaseLayout
+  title={`${title} — Adam Lineberry`}
+  description={description}
+  ogType="article"
+  publishedTime={date}
+  tags={tags}
+>
   <article class="post">
     <div class="wrap wrap--narrow">
       <header class="post-head">
-        <div class="post-eyebrow">{isNote ? 'Note' : 'Essay'}</div>
+        <div class="post-kicker">
+          <span>{kicker}</span>
+          <span class="line"></span>
+          <time datetime={date.toISOString()}>{dateStr}</time>
+        </div>
         <h1>{title}</h1>
         <div class="post-meta">
-          <time datetime={date.toISOString()}>{dateStr}</time>
-          {minutes && <><span class="sep">·</span><span>{minutes} min read</span></>}
-          {tags.length > 0 && (
-            <>
-              <span class="sep">·</span>
-              <span>
-                {tags.map((t) => <span class="chip">#{t}</span>)}
-              </span>
-            </>
-          )}
+          {minutes && <span>{minutes} min read</span>}
+          {tags.length > 0 && minutes && <span class="sep">·</span>}
+          {tags.map((t) => <span class="chip">#{t.replace(/\s+/g, '-')}</span>)}
         </div>
       </header>
       <div class="prose">

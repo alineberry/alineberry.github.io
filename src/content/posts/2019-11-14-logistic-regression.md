@@ -107,22 +107,22 @@ $$
 
 Since $$y$$ and $$\sigma(w^\top x)$$ are both scalars, the gradient (for a particular data point) is just a scaled version of $$x$$. To visualize this, let's set the stage with a simple 2 dimensional dataset and model. Consider the following binary classification data:
 
-<img src="/images/logistic-regression/data.png" alt="">
+<img src="/images/logistic-regression/data.png" alt="data">
 
 Note: For simplicity in the example below, I'm using a logistic regression model _without_ a bias term. This results in a non-affine decision boundary (ie the hyperplane must pass through the origin).
 
 
 Let's say the logistic regression model has been trained on this data and has learned model parameters $$w = [1, 1]^\top $$. In the default setting (before any threshold tuning), the logistic regression decision boundary is defined by $$ p(y=1 \lvert x) = \sigma(w^\top x) = 0.5 $$, which is equivalent to $$ w^\top x = 0 $$ (you can verify this equivalence by looking at the sigmoid function plot below). This means data is classified as Class 1 if $$ w^\top x > 0 $$ and Class 0 if $$ w^\top x < 0 $$.
 
-<img src="/images/logistic-regression/sigmoid.png" alt="">
+<img src="/images/logistic-regression/sigmoid.png" alt="sigmoid">
 
  In effect, $$w$$ defines a hyperplane (the decision boundary) in $$\mathbb{R}^d$$, $$ H = \{ x \in \mathbb{R}^d \lvert w^\top x = 0 \}$$. $$w$$ and $$H$$ are plotted with the data below.
 
-<img src="/images/logistic-regression/db.png" alt="">
+<img src="/images/logistic-regression/db.png" alt="db">
 
 Now, let's introduce a new data point, $$ x = [-3, 1]^\top $$ belonging to Class 1 (orange), which is incorrectly classified by the learned model:
 
-<img src="/images/logistic-regression/new-point.png" alt="">
+<img src="/images/logistic-regression/new-point.png" alt="new point">
 
 Let's consider what happens if the model is trained on just this incorrectly classified data point. Computing the gradient:
 
@@ -136,7 +136,7 @@ $$
 
 Now we can plot the gradient alongside the data and the existing decision boundary.
 
-<img src="/images/logistic-regression/gradient.png" alt="">
+<img src="/images/logistic-regression/gradient.png" alt="gradient">
 
 The gradient update equation at iteration $$t$$ is
 
@@ -156,7 +156,7 @@ $$
 
 Armed with the updated model parameters, we can draw the updated decision boundary:
 
-<img src="/images/logistic-regression/shifted.png" alt="">
+<img src="/images/logistic-regression/shifted.png" alt="shifted">
 
 As you can see, adding a fraction of the gradient to $$w$$ effectively rotated the decision boundary towards the misclassified point.
 

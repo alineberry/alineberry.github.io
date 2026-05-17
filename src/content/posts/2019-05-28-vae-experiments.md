@@ -8,18 +8,18 @@ isNote: false
 math: true
 ---
 
-This is the fourth and final post in my series: [From KL Divergence to Variational Autoencoder in PyTorch](/vae-series). The previous post in the series is [Variational Autoencoder Theory](/vae-series/vae-theory).
+This is the fourth and final post in my series: [From KL Divergence to Variational Autoencoder in PyTorch](/vae-series/). The previous post in the series is [Variational Autoencoder Theory](/vae-series/vae-theory/).
 
 
 ---
 
-In this post we will build and train a variational autoencoder (VAE) in PyTorch, tying everything back to the theory derived in my [post on VAE theory](/vae-series/vae-theory). The first half of the post provides discussion on the key points in the implementation. The second half provides the code itself along with some annotations.
+In this post we will build and train a variational autoencoder (VAE) in PyTorch, tying everything back to the theory derived in my [post on VAE theory](/vae-series/vae-theory/). The first half of the post provides discussion on the key points in the implementation. The second half provides the code itself along with some annotations.
 
 The VAE in this post is trained on the MNIST dataset on a laptop CPU. The images (originally 28x28) are flattened into a 784 dimensional vector for simplicity. The MNIST pixel intensity values, originally continuous $$\in [0,1]$$ are binarized such that each pixel value is $$\in \{0,1\}$$.
 
 Before diving into the code, let's set the stage by recapping the theory that has led us to this point.
 
-In variational inference for latent variable models, learning a model to maximize the marginal likelihood directly is intractable so we turn to maximizing a lower bound of it instead (referred to as the evidence lower bound, or "ELBO"). We won't go into any further details on variational inference since it is covered in depth in my [post on variational inference](/vae-series/variational-inference). The ELBO is then arranged in a particular way to form the objective function for the VAE:
+In variational inference for latent variable models, learning a model to maximize the marginal likelihood directly is intractable so we turn to maximizing a lower bound of it instead (referred to as the evidence lower bound, or "ELBO"). We won't go into any further details on variational inference since it is covered in depth in my [post on variational inference](/vae-series/variational-inference/). The ELBO is then arranged in a particular way to form the objective function for the VAE:
 
 $$
 \begin{align}
@@ -34,7 +34,7 @@ The basic intuition behind this objective is that the first term acts as a recon
 
 The VAE sets a unit diagonal Gaussian prior on the latent variable: $$p_{\theta}(z) = \mathcal{N}(0, I)$$, and learns the distributions $$q_{\phi}(z \lvert x)$$ and $$p_{\theta}(x \lvert z)$$ jointly in a single neural network. The first half of the network that maps data into a distribution over latent space is known as the *probabilistic encoder*. The second half of the network that maps samples from the latent space back into the original space is known as the *probabilistic decoder*.
 
-<img src="/images/vae/vae-architecture.png" alt="">
+<img src="/images/vae/vae-architecture.png" alt="vae architecture">
 <figcaption>Illustration of the VAE model architecture<sup>3</sup></figcaption>
 
 ## From the ELBO objective to a PyTorch loss function
@@ -142,16 +142,16 @@ The following gifs show the maturation of the model's latent space and data gene
 
 Animation throughout the entire training process:
 
-<img src="/images/vae/datagen_tracking.gif" alt="" width="500">
+<img src="/images/vae/datagen_tracking.gif" alt="datagen tracking" width="500">
 
 Animation for just the early stages of training:
-<img src="/images/vae/datagen_tracking_early.gif" alt="" width="500">
+<img src="/images/vae/datagen_tracking_early.gif" alt="datagen tracking early" width="500">
 
 The final state of the learned manifold after training has completed:
-<img src="/images/vae/datagen_final.png" width="500">
+<img src="/images/vae/datagen_final.png" width="500" alt="datagen final">
 
 As you can see, there are regions dedicated to individual digits with smooth transitions in between. I tried hand drawing the boundaries between digits to aid the visualization:
-<img src="/images/vae/datagen_final_handdrawn_partitions.png" width="500">
+<img src="/images/vae/datagen_final_handdrawn_partitions.png" width="500" alt="datagen final handdrawn partitions">
 
 
 ### Data reconstruction
@@ -162,7 +162,7 @@ At various points throughout training I also tracked how well the model was reco
 
 The following animation shows how the model's ability to reconstruct data improves over the training process:
 
-<img src="/images/vae/recon_tracking_early.gif" alt="" width="320">
+<img src="/images/vae/recon_tracking_early.gif" alt="recon tracking early" width="320">
 
 ### Anomaly detection
 
@@ -170,11 +170,11 @@ Anomalous data can be detected by leveraging the probabilistic nature of the VAE
 
 I computed this KL divergence for every point in the training set and plotted the resulting distribution:
 
-<img src="/images/vae/kl_dist.png" alt="" width="400">
+<img src="/images/vae/kl_dist.png" alt="kl dist" width="400">
 
 I then generated a noise sample:
 
-<img src="/images/vae/noise.png" alt="">
+<img src="/images/vae/noise.png" alt="noise">
 
 And calculated its KL divergence: 51.763. As you can see from the distribution plot, this value is a significant outlier and would be easy to detect using automated anomaly detection systems.
 

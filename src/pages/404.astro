@@ -5,12 +5,33 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 <BaseLayout title="Not Found — Adam Lineberry" description="Page not found.">
   <section class="hero">
     <div class="wrap">
-      <div class="eyebrow">404</div>
-      <h1>This page <span class="grad">doesn't exist</span>.</h1>
-      <p class="lede">
-        The page you're looking for isn't here. Try the <a href="/">homepage</a> or
-        the <a href="/notes/">notes</a>.
-      </p>
+      <div class="kicker">
+        <span>404 · Off the page</span>
+        <span class="line"></span>
+      </div>
+      <h1>This page doesn't <em>exist</em>.</h1>
+      <div class="columns">
+        <p class="lede">
+          <strong>You followed a link to nowhere.</strong> Try the
+          <a href="/">homepage</a> or the <a href="/notes/">notes archive</a>;
+          if you got here from somewhere on this site, please
+          <a href="https://github.com/alineberry/alineberry.github.io/issues/new">
+            let me know</a> so I can fix the link.
+        </p>
+        <div class="meta-col">
+          <dl>
+            <dt>Code</dt>
+            <dd>404</dd>
+            <dt>Path</dt>
+            <dd id="missing-path">—</dd>
+          </dl>
+        </div>
+      </div>
     </div>
   </section>
 </BaseLayout>
+
+<script>
+  const el = document.getElementById('missing-path');
+  if (el) el.textContent = window.location.pathname;
+</script>

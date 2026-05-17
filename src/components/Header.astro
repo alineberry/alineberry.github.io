@@ -1,15 +1,20 @@
 ---
 const path = Astro.url.pathname;
-const isActive = (p: string) => path === p || path.startsWith(p) ? 'page' : undefined;
+// Normalize for exact match — trailingSlash is 'always'
+const norm = path.endsWith('/') ? path : path + '/';
+const isOn = (p: string) => (norm === p ? 'page' : undefined);
 ---
 
 <header class="site">
   <div class="wrap topbar">
-    <a class="brand" href="/">adam<span class="dot">.</span>lineberry</a>
+    <a class="brand" href="/" aria-label="Adam Lineberry, home">
+      <span class="mark" aria-hidden="true">AL</span>
+      <span class="wordmark-long">Adam Lineberry</span>
+    </a>
     <nav class="primary" aria-label="Primary">
-      <a href="/" aria-current={path === '/' ? 'page' : undefined}>Writing</a>
-      <a href="/notes/" aria-current={isActive('/notes')}>Notes</a>
-      <a href="/about/" aria-current={isActive('/about')}>About</a>
+      <a href="/" aria-current={isOn('/')}>Writing</a>
+      <a href="/notes/" aria-current={isOn('/notes/')}>Notes</a>
+      <a href="/about/" aria-current={isOn('/about/')}>About</a>
     </nav>
   </div>
 </header>

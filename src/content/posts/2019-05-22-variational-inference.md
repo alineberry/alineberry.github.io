@@ -8,14 +8,14 @@ isNote: false
 math: true
 ---
 
-This is the second post in my series: [From KL Divergence to Variational Autoencoder in PyTorch](/vae-series). The previous post in the series is [A Quick Primer on KL Divergence](/vae-series/kl-divergence) and the next post is [Variational Autoencoder Theory](/vae-series/vae-theory).
+This is the second post in my series: [From KL Divergence to Variational Autoencoder in PyTorch](/vae-series/). The previous post in the series is [A Quick Primer on KL Divergence](/vae-series/kl-divergence/) and the next post is [Variational Autoencoder Theory](/vae-series/vae-theory/).
 
 
 ---
 
 Latent variable models are a powerful form of [typically unsupervised] machine learning used for a variety of tasks such as clustering, dimensionality reduction, data generation, and topic modeling. The basic premise is that there is some latent and unobserved variable $$z_{i}$$ that causes the observed data point $$x_{i}$$. Here is the graphical model (or Bayesian network) representation:
 
-<img src="/images/vae/graphical-model.png" alt="" width="200">
+<img src="/images/vae/graphical-model.png" alt="graphical model" width="200">
 
 Latent variable models model the probability distribution:
 
@@ -64,7 +64,7 @@ Again, this calculation is typically intractable because $$p_{\theta}(x)$$ appea
 
 ## Derivation of Variational Lower Bound
 
-To start, let's assume that the posterior $$p_{\theta}(z \lvert x)$$ is intractable. To deal with this we will introduce a new distribution $$q_{\phi}(z)$$. We would like $$q_{\phi}(z)$$ to closely approximate $$p_{\theta}(z \lvert x)$$ and we are free to choose any form we like for $$q$$. For example, we could choose $$q$$ to be static or conditional on $$x$$ in some way (as you might guess, $$q$$ **is** typically conditioned on $$x$$). A good approximation can be seen as one that minimizes the KL divergence between the distributions (for a primer on KL divergence, see [this post](/vae-series/kl-divergence)):
+To start, let's assume that the posterior $$p_{\theta}(z \lvert x)$$ is intractable. To deal with this we will introduce a new distribution $$q_{\phi}(z)$$. We would like $$q_{\phi}(z)$$ to closely approximate $$p_{\theta}(z \lvert x)$$ and we are free to choose any form we like for $$q$$. For example, we could choose $$q$$ to be static or conditional on $$x$$ in some way (as you might guess, $$q$$ **is** typically conditioned on $$x$$). A good approximation can be seen as one that minimizes the KL divergence between the distributions (for a primer on KL divergence, see [this post](/vae-series/kl-divergence/)):
 
 Note: For simplicity I will be using summations instead of integrals in the derivation.
 
@@ -138,7 +138,7 @@ In this post we introduced latent variable models provided some insight on their
 
 In the simplest case, when $$p_{\theta}(z \lvert x)$$ is tractable (e.g., GMMs), we showed how the expectation maximization algorithm can be applied.
 
-However, there are plenty of cases where the posterior $$p_{\theta}(z \lvert x)$$ is not tractable. A more recent approach to solving this problem is to use deep neural networks to jointly learn $$q_{\phi}(z \lvert x)$$ and $$p_{\theta}(x \lvert z)$$ with an ELBO loss function, such as in the variational autoencoder. For more on this see my [post on variational autoencoder theory](/vae-series/vae-theory), where we will further refine the theory presented here to form the basis for the variational autoencoder.
+However, there are plenty of cases where the posterior $$p_{\theta}(z \lvert x)$$ is not tractable. A more recent approach to solving this problem is to use deep neural networks to jointly learn $$q_{\phi}(z \lvert x)$$ and $$p_{\theta}(x \lvert z)$$ with an ELBO loss function, such as in the variational autoencoder. For more on this see my [post on variational autoencoder theory](/vae-series/vae-theory/), where we will further refine the theory presented here to form the basis for the variational autoencoder.
 
 ## Resources
 

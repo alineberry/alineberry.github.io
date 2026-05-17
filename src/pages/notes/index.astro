@@ -4,26 +4,48 @@ import PostListItem from '../../components/PostListItem.astro';
 import { getNotes, readingTime, postHref } from '../../lib/posts';
 
 const notes = await getNotes();
+const count = notes.length;
 ---
 
-<BaseLayout title="Notes — Adam Lineberry" description="Less-polished notes, derivations, and references.">
+<BaseLayout
+  title="Notes — Adam Lineberry"
+  description="Less-polished notes, derivations, and references."
+>
   <section class="hero">
     <div class="wrap">
-      <div class="eyebrow">Notes</div>
-      <h1>Working notes &amp; <span class="grad">derivations</span>.</h1>
-      <p class="lede">
-        Less polished than the essays. Some will eventually graduate; others will stay
-        here as references for me.
-      </p>
+      <div class="kicker">
+        <span>Index · Notes</span>
+        <span class="line"></span>
+      </div>
+      <h1>Working notes &amp; <em>derivations</em>.</h1>
+      <div class="columns">
+        <p class="lede">
+          <strong>Less polished than the essays.</strong> Some will eventually
+          graduate; others will stay here as references for me — the kind of thing
+          I'd jot in a paper notebook if I still kept one.
+        </p>
+        <div class="meta-col">
+          <dl>
+            <dt>Count</dt>
+            <dd>{count}</dd>
+            <dt>Format</dt>
+            <dd>Derivations, code, scratch</dd>
+          </dl>
+        </div>
+      </div>
     </div>
   </section>
 
   <section class="feed">
     <div class="wrap">
-      <h2>All notes</h2>
+      <div class="feed-head">
+        <h2>All notes</h2>
+        <span class="count">{count} notes</span>
+      </div>
       <ul class="posts">
-        {notes.map((p) => (
+        {notes.map((p, i) => (
           <PostListItem
+            index={i + 1}
             title={p.data.title}
             href={postHref(p)}
             date={p.data.date}

@@ -5,35 +5,48 @@ import { getEssays, readingTime, postHref } from '../lib/posts';
 
 const essays = await getEssays();
 const count = essays.length;
-const latestYear = essays[0]?.data.date.getFullYear() ?? new Date().getFullYear();
+const lastUpdated = essays[0]?.data.date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 ---
 
 <BaseLayout title="Adam Lineberry">
   <section class="hero">
     <div class="wrap">
-      <div class="eyebrow">ML Engineer · Denver, CO</div>
-      <h1>
-        Notes on machine learning, <span class="grad">written to understand them better</span>.
-      </h1>
-      <p class="lede">
-        I'm an ML engineer at Kensho, S&amp;P Global's AI lab — working on agentic
-        systems, harness engineering, and the data layer behind both. This is where I
-        write things down — derivations, experiments, and the occasional tangent — to
-        make sure I actually understand them.
-      </p>
-      <div class="meta">
-        <span class="pip"></span>
-        <span>{count} essays · last updated {latestYear}</span>
+      <div class="kicker">
+        <span>No. {String(count).padStart(2, '0')} · Machine Learning</span>
+        <span class="line"></span>
+      </div>
+      <h1>Notes on ML, written to <em>understand them better</em>.</h1>
+      <div class="columns">
+        <p class="lede">
+          <strong>I'm a Machine Learning Engineer at Kensho</strong> — S&amp;P Global's
+          AI lab — working on agentic engineering, harness engineering, and the
+          AI-friendly data layer behind both. This is where I work things out in
+          writing: derivations, experiments, and the occasional tangent.
+        </p>
+        <div class="meta-col">
+          <dl>
+            <dt>Currently</dt>
+            <dd>Kensho · South Carolina</dd>
+            <dt>Writing about</dt>
+            <dd>ML derivations, agents, data systems</dd>
+            <dt>Essays</dt>
+            <dd>{count} — last updated {lastUpdated}</dd>
+          </dl>
+        </div>
       </div>
     </div>
   </section>
 
   <section class="feed">
     <div class="wrap">
-      <h2>Recent writing</h2>
+      <div class="feed-head">
+        <h2>Recent writing</h2>
+        <span class="count">{count} essays</span>
+      </div>
       <ul class="posts">
-        {essays.map((p) => (
+        {essays.map((p, i) => (
           <PostListItem
+            index={i + 1}
             title={p.data.title}
             href={postHref(p)}
             date={p.data.date}

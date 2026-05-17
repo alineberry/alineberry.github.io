@@ -7,18 +7,29 @@ interface Props {
   title: string;
   description?: string;
   ogImage?: string;
+  ogType?: 'website' | 'article';
+  publishedTime?: Date;
+  tags?: string[];
 }
-const { title, description, ogImage } = Astro.props;
+const { title, description, ogImage, ogType, publishedTime, tags } = Astro.props;
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
-    <BaseHead title={title} description={description} ogImage={ogImage} />
+    <BaseHead
+      title={title}
+      description={description}
+      ogImage={ogImage}
+      ogType={ogType}
+      publishedTime={publishedTime}
+      tags={tags}
+    />
   </head>
   <body>
+    <a href="#main" class="skip-link">Skip to content</a>
     <Header />
-    <main>
+    <main id="main">
       <slot />
     </main>
     <Footer />

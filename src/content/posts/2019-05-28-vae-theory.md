@@ -8,7 +8,7 @@ isNote: false
 math: true
 ---
 
-This is the third post in my series: [From KL Divergence to Variational Autoencoder in PyTorch](/vae-series). The previous post in the series is [Latent Variable Models, Expectation Maximization, and Variational Inference](/vae-series/variational-inference) and the next post is [Variational Autoencoder Code and Experiments](/vae-series/vae-code-experiments).
+This is the third post in my series: [From KL Divergence to Variational Autoencoder in PyTorch](/vae-series/). The previous post in the series is [Latent Variable Models, Expectation Maximization, and Variational Inference](/vae-series/variational-inference/) and the next post is [Variational Autoencoder Code and Experiments](/vae-series/vae-code-experiments/).
 
 
 ---
@@ -16,8 +16,8 @@ This is the third post in my series: [From KL Divergence to Variational Autoenco
 The Variational Autoencoder has taken the machine learning community by storm since Kingma and Welling's seminal paper was released in 2013<sup>1</sup>. It was one of the first model architectures in the mainstream to establish a strong connection between deep learning and Bayesian statistics. Quite frankly, it's also just really cool. A VAE trained on image data results in the ability to create spectacular visualizations of the latent factors it learns and the realistic images it can generate. In the world of data science it's an excellent bridge between statistics and computer science. It's interesting to think about and tinker with, and it makes a great sandbox to learn and build intuition about deep learning and statistics.
 
 <figure class="half" style="display:flex">
-  <img src="/images/vae/datagen_final.png" height="100">
-  <img src="/images/vae/frey_face.png" height="100">
+  <img src="/images/vae/datagen_final.png" height="100" alt="datagen final">
+  <img src="/images/vae/frey_face.png" height="100" alt="frey face">
   <figcaption>(left) Synthesized digits from MNIST sampled from a grid on the learned latent manifold. Notice the smooth transitions between digits. (right) Synthesized faces sampled from a grid on the manifold of a VAE trained on the Frey Face dataset<sup>1</sup>. Notice that the VAE has learned interpretable latent factors: left-to-right adjusts head orientation, top-to-bottom adjusts level of frowning or smiling. </figcaption>
 </figure>
 
@@ -27,19 +27,16 @@ The VAE seems very similar to other autoencoders. At a high level, an autoencode
 
 In this post we are going to introduce the theory of the VAE by building on concepts introduced in the previous post, such as variational inference and maximizing the Evidence Lower Bound (ELBO).
 
-{% capture notice-1 %}
-**Table of contents:**
-1. Derivation of the VAE objective function
-1. Intuition behind the VAE objective function
-1. Model architecture
-1. Optimization
-1. Practical uses of the VAE
-{% endcapture %}
-<div class="notice">{{ notice-1 | markdownify }}</div>
+> **Table of contents:**
+> 1. Derivation of the VAE objective function
+> 1. Intuition behind the VAE objective function
+> 1. Model architecture
+> 1. Optimization
+> 1. Practical uses of the VAE
 
 ## Derivation of the VAE objective function
 
-As discussed in my [post on variational inference](/vae-series/variational-inference), the intractable data likelihood which we would like to maximize can be decomposed into the following expression:
+As discussed in my [post on variational inference](/vae-series/variational-inference/), the intractable data likelihood which we would like to maximize can be decomposed into the following expression:
 
 $$
 \log p_{\theta}(x) = KL[q_{\phi}(z) \lVert p_{\theta}(z \lvert x)] + \underset{z}{\sum} q_{\phi}(z) \log \frac{p_{\theta}(x,z)}{q_{\phi}(z)}
@@ -113,7 +110,7 @@ Where $$h_{\theta}(z)$$ is an MLP mapping from the latent dimension to the data 
 
 Distributions $$p_{\theta}(x \lvert z)$$ and $$q_{\phi}(z \lvert x)$$ are learned jointly in the same neural network:
 
-<img src="/images/vae/vae-architecture.png" alt="">
+<img src="/images/vae/vae-architecture.png" alt="vae architecture">
 <figcaption>Illustration of the VAE model architecture<sup>3</sup></figcaption>
 
 It is clear how the VAE model architecture closely resembles that of standard autoencoders. The first half of the network which is modeling $$q_{\phi}(z \lvert x)$$ is known as the *probabilistic encoder* and the second half of the network which models $$p_{\theta}(x \lvert z)$$ is known as the *probabilistic decoder*. This interpretation further extends the analogy between VAEs and standard autoencoders, but it should be noted that the mechanics and motivations are actually quite different.
@@ -143,7 +140,7 @@ In the case of the VAE we approximate the expectation using the single sample fr
 
 Another gradient descent-related complication is the sampling step that occurs between the encoder and the decoder. Without getting into the details, directly sampling $$z$$ from $$q_{\phi}(z \lvert x)$$ introduces a discontinuity that cannot be backpropogated through.
 
-<img src="/images/vae/architecture-no-reparam.png" alt="" width="500">
+<img src="/images/vae/architecture-no-reparam.png" alt="architecture no reparam" width="500">
 <figcaption>
 Diagram of the VAE without the reparameterization trick. Dashed arrows represent the sampling operation.
 </figcaption>
@@ -157,7 +154,7 @@ $$
 
 You can show that $$z$$ defined in this way follows the distribution $$q_{\phi}(z \lvert x)$$.
 
-<img src="/images/vae/architecture-with-reparam.png" alt="" width="550">
+<img src="/images/vae/architecture-with-reparam.png" alt="architecture with reparam" width="550">
 <figcaption>
 Diagram of the VAE with the reparameterization trick. Dashed arrows represent the sampling operation.
 </figcaption>
@@ -179,7 +176,7 @@ In this post we introduced the VAE and showed how it is a modern extension of th
 
 Some of the important details regarding the neural network architecture and optimization were discussed. We saw how the probabilistic encoder and probabilistic decoder are modeled as neural networks and how the reparameterization trick is used to allow for backpropogation through the entire network.
 
-To see the VAE in action, check out my [next post](/vae-series/vae-code-experiments) which draws a strong connection between the theory presented here and actual PyTorch code and presents the results of several interesting experiments.
+To see the VAE in action, check out my [next post](/vae-series/vae-code-experiments/) which draws a strong connection between the theory presented here and actual PyTorch code and presents the results of several interesting experiments.
 
 ## Resources
 

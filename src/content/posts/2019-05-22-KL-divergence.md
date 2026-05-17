@@ -8,7 +8,7 @@ isNote: false
 math: true
 ---
 
-This is the first post in my series: [From KL Divergence to Variational Autoencoder in PyTorch](/vae-series). The next post in the series is [Latent Variable Models, Expectation Maximization, and Variational Inference](/vae-series/variational-inference).
+This is the first post in my series: [From KL Divergence to Variational Autoencoder in PyTorch](/vae-series/). The next post in the series is [Latent Variable Models, Expectation Maximization, and Variational Inference](/vae-series/variational-inference/).
 
 
 ---
@@ -61,7 +61,7 @@ $$KL[ p || q ] = \sum\limits_{z}p(z) \log\frac{p(z)}{q(z)}$$
 
 As you can see from this equation and the figure below, there is a penalty anywhere $$p(z) > 0$$ that $$q$$ is not covering. In fact, if $$q(z)=0$$ in a region where $$p(z)>0$$, the KL divergence blows up because $$\lim_{q(z) \to 0} \log \frac{p(z)}{q(z)} \to \infty$$. This results in learning a $$q$$ that spreads out to cover all regions where $$p$$ has any density. This is known as "zero avoiding".
 
-<img src="/images/vae/forward-KL.png" alt="" width="400">
+<img src="/images/vae/forward-KL.png" alt="forward KL" width="400">
 <figcaption>Illustration of the "zero-avoiding" behavior of forward KL. Shows a reasonable distribution q with a high forward KL divergence (top), and a different distribution q with a lower forward KL divergence (bottom).</figcaption>
 
 Reverse KL takes the form
@@ -72,7 +72,7 @@ As seen from the equation and the figure below, reverse KL has a much different 
 
 For example, if $$p$$ has probability density in two disjoint regions in space, a $$q$$ with limited complexity may not be able to span the zero-probability space between these regions. In this case, the learned $$q$$ would only have density in one of the two dense regions of $$p$$.
 
-<img src="/images/vae/reverse-KL.png" alt="" width="400">
+<img src="/images/vae/reverse-KL.png" alt="reverse KL" width="400">
 <figcaption>Illustration of the "zero-forcing" behavior of reverse KL. Shows a reasonable distribution q with a high reverse KL divergence (top), and a different distribution q with a lower reverse KL divergence (bottom).</figcaption>
 
 ## Conclusion
@@ -83,7 +83,7 @@ Numerous machine learning models and algorithms use KL divergence as part of the
 
 KL divergence is asymmetric and it's important to understand the differences between forward and reverse KL.
 
-My [next post](/vae-series/variational-inference) builds on KL divergence to explore latent variable models, expectation maximization, variational inference, and the ELBO.
+My [next post](/vae-series/variational-inference/) builds on KL divergence to explore latent variable models, expectation maximization, variational inference, and the ELBO.
 
 ## Resources
 
