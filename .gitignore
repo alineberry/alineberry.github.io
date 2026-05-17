@@ -1,12 +1,7 @@
-# Jekyll
-_site/
-.jekyll-cache/
-.jekyll-metadata
-.sass-cache/
-
-# Bundler
-.bundle/
-vendor/
+# Node / Astro
+node_modules/
+dist/
+.astro/
 
 # OS / editor
 .DS_Store
@@ -15,11 +10,6 @@ Thumbs.db
 *.swo
 .idea/
 .vscode/
-
-# Node / Astro
-node_modules/
-dist/
-.astro/
 
 # Env
 .env
