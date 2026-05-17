@@ -1,1 +1,20 @@
-_site
+# Jekyll
+_site/
+.jekyll-cache/
+.jekyll-metadata
+.sass-cache/
+
+# Bundler
+.bundle/
+vendor/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Node (only if you ever add tooling)
+node_modules/
