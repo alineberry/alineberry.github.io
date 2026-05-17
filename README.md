@@ -3,26 +3,48 @@
 Personal site of Adam Lineberry — notes and writing on machine learning and
 data science.
 
-Built with [Jekyll](https://jekyllrb.com/) and the
-[Minimal Mistakes](https://github.com/mmistakes/minimal-mistakes) theme,
-hosted on GitHub Pages.
+Built with [Astro](https://astro.build/), deployed to GitHub Pages via Actions.
 
 ## Local development
 
 ```sh
-bundle install
-bundle exec jekyll serve
+npm install
+npm run dev
 ```
 
-Then open <http://localhost:4000>.
+Then open <http://localhost:4321>.
+
+To preview a production build:
+
+```sh
+npm run build
+npm run preview
+```
 
 ## Writing
 
-- Posts live in `_posts/` with the filename convention `YYYY-MM-DD-slug.md`.
-- Pages live in `_pages/`.
-- Images live in `images/` (per-post subfolder for anything beyond a hero).
+- Posts live in `src/content/posts/` as Markdown (or MDX).
+- Each post needs frontmatter:
+  ```yaml
+  ---
+  title: "Post title"
+  date: 2024-01-15
+  description: "Short summary used for SEO and the post list."
+  tags: ["machine learning", "deep learning"]
+  permalink: /some/url/   # required; controls the URL exactly
+  isNote: false            # set true to land it on /notes/ instead of homepage
+  math: true               # enable KaTeX rendering for $...$ and $$...$$
+  ---
+  ```
+- Images go in `public/images/` and are referenced as `/images/path.png`.
 
-## Configuration
+## Pages
 
-Site-wide settings are in `_config.yml`. The theme is pulled in via
-`remote_theme`, so upgrading is a one-line bump.
+- `src/pages/index.astro` — homepage (essays only)
+- `src/pages/notes/index.astro` — notes archive
+- `src/pages/about.astro` — about page
+- `src/pages/[...slug].astro` — catch-all for post routes (uses `permalink` from frontmatter)
+
+## Deploy
+
+`.github/workflows/deploy.yml` builds and publishes to GitHub Pages on every push to `master`. Pages source must be set to "GitHub Actions" in the repo settings.

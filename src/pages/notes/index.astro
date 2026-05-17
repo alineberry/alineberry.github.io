@@ -1,0 +1,38 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostListItem from '../../components/PostListItem.astro';
+import { getNotes, readingTime, postHref } from '../../lib/posts';
+
+const notes = await getNotes();
+---
+
+<BaseLayout title="Notes — Adam Lineberry" description="Less-polished notes, derivations, and references.">
+  <section class="hero">
+    <div class="wrap">
+      <div class="eyebrow">Notes</div>
+      <h1>Working notes &amp; <span class="grad">derivations</span>.</h1>
+      <p class="lede">
+        Less polished than the essays. Some will eventually graduate; others will stay
+        here as references for me.
+      </p>
+    </div>
+  </section>
+
+  <section class="feed">
+    <div class="wrap">
+      <h2>All notes</h2>
+      <ul class="posts">
+        {notes.map((p) => (
+          <PostListItem
+            title={p.data.title}
+            href={postHref(p)}
+            date={p.data.date}
+            description={p.data.description}
+            tags={p.data.tags}
+            minutes={readingTime(p.body ?? '')}
+          />
+        ))}
+      </ul>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,45 @@
+---
+import 'katex/dist/katex.min.css';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  ogImage?: string;
+}
+const { title, description, ogImage } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site).toString();
+const desc = description ?? "Notes and writing on machine learning, by Adam Lineberry.";
+const image = new URL(ogImage ?? '/images/headshot2.jpeg', Astro.site).toString();
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="generator" content={Astro.generator} />
+<link rel="canonical" href={canonical} />
+
+<title>{title}</title>
+<meta name="description" content={desc} />
+<meta name="author" content="Adam Lineberry" />
+
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Adam Lineberry" />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={desc} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={image} />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={desc} />
+<meta name="twitter:image" content={image} />
+
+<link rel="alternate" type="application/rss+xml" title="Adam Lineberry" href="/rss.xml" />
+<link rel="sitemap" href="/sitemap-index.xml" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+/>

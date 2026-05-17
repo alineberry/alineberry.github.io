@@ -1,0 +1,40 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  date: Date;
+  tags?: string[];
+  minutes?: number;
+  isNote?: boolean;
+}
+const { title, description, date, tags = [], minutes, isNote = false } = Astro.props;
+const dateStr = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+---
+
+<BaseLayout title={`${title} — Adam Lineberry`} description={description}>
+  <article class="post">
+    <div class="wrap wrap--narrow">
+      <header class="post-head">
+        <div class="post-eyebrow">{isNote ? 'Note' : 'Essay'}</div>
+        <h1>{title}</h1>
+        <div class="post-meta">
+          <time datetime={date.toISOString()}>{dateStr}</time>
+          {minutes && <><span class="sep">·</span><span>{minutes} min read</span></>}
+          {tags.length > 0 && (
+            <>
+              <span class="sep">·</span>
+              <span>
+                {tags.map((t) => <span class="chip">#{t}</span>)}
+              </span>
+            </>
+          )}
+        </div>
+      </header>
+      <div class="prose">
+        <slot />
+      </div>
+    </div>
+  </article>
+</BaseLayout>

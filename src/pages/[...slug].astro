@@ -1,0 +1,28 @@
+---
+import { render } from 'astro:content';
+import PostLayout from '../layouts/PostLayout.astro';
+import { getAllPosts, readingTime, postHref } from '../lib/posts';
+
+export async function getStaticPaths() {
+  const posts = await getAllPosts();
+  return posts.map((post) => {
+    const slug = postHref(post).replace(/^\/|\/$/g, '');
+    return { params: { slug }, props: { post } };
+  });
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const minutes = readingTime(post.body ?? '');
+---
+
+<PostLayout
+  title={post.data.title}
+  description={post.data.description}
+  date={post.data.date}
+  tags={post.data.tags}
+  minutes={minutes}
+  isNote={post.data.isNote}
+>
+  <Content />
+</PostLayout>

@@ -16,5 +16,18 @@ Thumbs.db
 .idea/
 .vscode/
 
-# Node (only if you ever add tooling)
+# Node / Astro
 node_modules/
+dist/
+.astro/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
