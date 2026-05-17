@@ -12,15 +12,19 @@ The area under the receiver operating characteristic curve (commonly known as "A
 
 Quick disclaimer here: It is not the intent of this post to show how these calculations are implemented in production; there are variations and optimizations to the methodology and code presented. Rather, the intent is to show a basic, easy to understand implementation with the objective of building the reader's intuition.
 
-<img src="/images/2019-05-20-how-auroc-is-calculated/Roccurves.png" alt="Sample ROC Curve" height="200">
+<figure>
+<img src="/images/2019-05-20-how-auroc-is-calculated/Roccurves.png" alt="Sample ROC Curve" style="max-height: 200px; width: auto">
 <figcaption>Sample ROC Curve</figcaption>
+</figure>
 
 ## General Discussion
 
 Before jumping into the code, let's take a stroll down conversation street and provide a general, high-level, and undoubtedly hand-wavy treatment of the famed ROC curve. Receiver Operator Characteristic. The origin of the name (and the method) traces its roots back to World War II. Radar operators (or receivers) sat in front of a display and were tasked with sounding an alarm whenever an enemy aircraft was detected. Of course, radar signals can be quite noisy and it was difficult to distinguish between an enemy bomber and something far less menacing, such as a flock of geese. So, in effect, these radar operators were functioning as binary classifiers. There was a dire need to identify as many enemy aircraft as possible (recall, true positive rate), while minimizing the number of times the base went into high alert over an innocent flock of geese (false positive rate). Thus, the ROC curve was introduced as a method to analyze the performance of radar operators.
 
-<img src="/images/2019-05-20-how-auroc-is-calculated/700px-Precisionrecall.svg.png" alt="700px Precisionrecall.svg" height="100" width="300">
+<figure>
+<img src="/images/2019-05-20-how-auroc-is-calculated/700px-Precisionrecall.svg.png" alt="700px Precisionrecall.svg" style="max-width: 300px; max-height: 100px">
 <figcaption>Binary Classification Space</figcaption>
+</figure>
 
 The idealized ROC curve is continuous across all possible classification thresholds. Points that are plotted on the ROC curve correspond to particular classification thresholds $$T \in (-\infty, \infty)$$. In the real world we are dealing with a discrete number of data points with which we would like to estimate the ROC curve for a classifier of interest. This manifests itself in ROC curves that can look a bit jumpy rather than smooth. Instead of considering all possible thresholds, we only have $$N$$ thresholds to consider, where $$N$$ is the number of data points in the dataset we are evaluating.
 
@@ -33,8 +37,10 @@ A common mistake to be avoided at all costs is calculating AUC using binarized p
 Many references will describe the computation of the area under the ROC curve using an integral and leave it at that. An integral may be a technically correct description, but it doesn't give the reader any intuition about how this area calculation is actually performed. It's actually quite simple. Once you understand the algorithm described above, you can see that the ROC curve itself is really just a bunch of right angles. Thus, the area under the curve can be calculated as the sum of the area of several rectangles.
 
 <a href="https://www.r-bloggers.com/calculating-auc-the-area-under-a-roc-curve/">
-<img src="/images/2019-05-20-how-auroc-is-calculated/roc-curve-rectangles.png" alt="ROC Curve Rectangles" height="200">
+<figure>
+<img src="/images/2019-05-20-how-auroc-is-calculated/roc-curve-rectangles.png" alt="ROC Curve Rectangles" style="max-height: 200px; width: auto">
 <figcaption>ROC Curve Composed of Rectangles</figcaption>
+</figure>
 
 ## Tutorial
 
@@ -289,20 +295,6 @@ auc_data.head()
 
 
 
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
@@ -339,7 +331,6 @@ auc_data.head()
     </tr>
   </tbody>
 </table>
-</div>
 
 
 
@@ -355,20 +346,6 @@ auc_data.head()
 
 
 
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
@@ -405,7 +382,6 @@ auc_data.head()
     </tr>
   </tbody>
 </table>
-</div>
 
 
 
@@ -420,20 +396,6 @@ auc_data.head()
 
 
 
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
@@ -476,7 +438,6 @@ auc_data.head()
     </tr>
   </tbody>
 </table>
-</div>
 
 
 
@@ -491,20 +452,6 @@ auc_data.head()
 
 
 
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
@@ -541,7 +488,6 @@ auc_data.head()
     </tr>
   </tbody>
 </table>
-</div>
 
 
 
@@ -556,20 +502,6 @@ auc_data.head()
 
 
 
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
@@ -612,7 +544,6 @@ auc_data.head()
     </tr>
   </tbody>
 </table>
-</div>
 
 
 Now it's time for the real computation. As discussed previously, we are going to iterate over the sorted predictions, consider the cursor as a threshold, and compute statistics for each iteration.

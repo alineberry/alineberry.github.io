@@ -36,8 +36,10 @@ $$
 
 ## Connection to Dot Product
 
-<img src="/images/pca/dot-product-projection.png" alt="dot product projection" width="400">
+<figure>
+<img src="/images/pca/dot-product-projection.png" alt="dot product projection" style="max-width: 400px">
 <figcaption>Relationship between dot product and distance to projection<sup>1</sup></figcaption>
+</figure>
 
 Want to minimize $$\text{dist}(\mathbf{x}_i \leftrightarrow \text{line})$$. By the Pythagorean Theorum:
 
@@ -101,8 +103,10 @@ $$
 
 Diagonal matrices (ie, zero everywhere except the diagonal) expand space along the standard axes (ie, in the directions of the standard basis vectors).
 
-<img src="/images/pca/diagonal-expansion.png" alt="diagonal expansion" width="400">
+<figure>
+<img src="/images/pca/diagonal-expansion.png" alt="diagonal expansion" style="max-width: 400px">
 <figcaption>How a diagonal matrix expands space<sup>2</sup></figcaption>
+</figure>
 
 I won't prove it here, but an important note for the rest of the derivation is the fact that the solution to $$\mathrm{argmax}_\mathbf{v} \; \mathbf{v}^\top \mathbf{Dv} $$ for a diagonal matrix $$\mathbf{D}$$ is the standard basis vector corresponding to the dimension with the largest diagonal entry in $$\mathbf{D}$$.
 
@@ -117,8 +121,10 @@ $$
 
 This means that symmetric matrices still expand space orthogonally, but in directions rotated from the standard basis.
 
-<img src="/images/pca/symmetric-expansion.png" alt="symmetric expansion" width="400">
+<figure>
+<img src="/images/pca/symmetric-expansion.png" alt="symmetric expansion" style="max-width: 400px">
 <figcaption>How a symmetric matrix expands space<sup>2</sup></figcaption>
+</figure>
 
 ## Eigenvectors
 

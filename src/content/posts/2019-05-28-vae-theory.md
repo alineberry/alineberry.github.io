@@ -16,8 +16,8 @@ This is the third post in my series: [From KL Divergence to Variational Autoenco
 The Variational Autoencoder has taken the machine learning community by storm since Kingma and Welling's seminal paper was released in 2013<sup>1</sup>. It was one of the first model architectures in the mainstream to establish a strong connection between deep learning and Bayesian statistics. Quite frankly, it's also just really cool. A VAE trained on image data results in the ability to create spectacular visualizations of the latent factors it learns and the realistic images it can generate. In the world of data science it's an excellent bridge between statistics and computer science. It's interesting to think about and tinker with, and it makes a great sandbox to learn and build intuition about deep learning and statistics.
 
 <figure class="half" style="display:flex">
-  <img src="/images/vae/datagen_final.png" height="100" alt="datagen final">
-  <img src="/images/vae/frey_face.png" height="100" alt="frey face">
+  <img src="/images/vae/datagen_final.png" alt="datagen final" style="max-height: 100px; width: auto">
+  <img src="/images/vae/frey_face.png" alt="frey face" style="max-height: 100px; width: auto">
   <figcaption>(left) Synthesized digits from MNIST sampled from a grid on the learned latent manifold. Notice the smooth transitions between digits. (right) Synthesized faces sampled from a grid on the manifold of a VAE trained on the Frey Face dataset<sup>1</sup>. Notice that the VAE has learned interpretable latent factors: left-to-right adjusts head orientation, top-to-bottom adjusts level of frowning or smiling. </figcaption>
 </figure>
 
@@ -110,8 +110,10 @@ Where $$h_{\theta}(z)$$ is an MLP mapping from the latent dimension to the data 
 
 Distributions $$p_{\theta}(x \lvert z)$$ and $$q_{\phi}(z \lvert x)$$ are learned jointly in the same neural network:
 
+<figure>
 <img src="/images/vae/vae-architecture.png" alt="vae architecture">
 <figcaption>Illustration of the VAE model architecture<sup>3</sup></figcaption>
+</figure>
 
 It is clear how the VAE model architecture closely resembles that of standard autoencoders. The first half of the network which is modeling $$q_{\phi}(z \lvert x)$$ is known as the *probabilistic encoder* and the second half of the network which models $$p_{\theta}(x \lvert z)$$ is known as the *probabilistic decoder*. This interpretation further extends the analogy between VAEs and standard autoencoders, but it should be noted that the mechanics and motivations are actually quite different.
 
@@ -140,10 +142,12 @@ In the case of the VAE we approximate the expectation using the single sample fr
 
 Another gradient descent-related complication is the sampling step that occurs between the encoder and the decoder. Without getting into the details, directly sampling $$z$$ from $$q_{\phi}(z \lvert x)$$ introduces a discontinuity that cannot be backpropogated through.
 
-<img src="/images/vae/architecture-no-reparam.png" alt="architecture no reparam" width="500">
+<figure>
+<img src="/images/vae/architecture-no-reparam.png" alt="architecture no reparam" style="max-width: 500px">
 <figcaption>
 Diagram of the VAE without the reparameterization trick. Dashed arrows represent the sampling operation.
 </figcaption>
+</figure>
 
 The neat solution to this is called the *reparameterization trick*, which moves the stochastic operation to an input layer and results in continuous linkage between the encoder and decoder allowing for backpropogation all the way through the encoder. Instead of sampling directly from the encoder $$z_i \sim q_{\phi}(z_i \lvert x_i)$$, we can represent $$z_i$$ as a deterministic function of $$x_i$$ and some noise $$\epsilon_i$$:
 
@@ -154,10 +158,12 @@ $$
 
 You can show that $$z$$ defined in this way follows the distribution $$q_{\phi}(z \lvert x)$$.
 
-<img src="/images/vae/architecture-with-reparam.png" alt="architecture with reparam" width="550">
+<figure>
+<img src="/images/vae/architecture-with-reparam.png" alt="architecture with reparam" style="max-width: 550px">
 <figcaption>
 Diagram of the VAE with the reparameterization trick. Dashed arrows represent the sampling operation.
 </figcaption>
+</figure>
 
 ## Practical uses of VAE
 

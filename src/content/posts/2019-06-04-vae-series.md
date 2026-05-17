@@ -10,14 +10,16 @@ math: true
 
 In this series of four posts, I attempt to build up the theory, mathematics, and intuition of variational autoencoders (VAE), starting with some basic fundamentals and then moving closer and closer to a full PyTorch implementation with each post.
 
+<figure>
 <img src="/images/vae/vae-architecture.png" alt="vae architecture">
 <figcaption>Illustration of the VAE model architecture</figcaption>
+</figure>
 
 The ultimate goal of the series is to provide the full picture of variational autoencoders, all the way from expected values to Python classes. The first two posts discuss the general theory and derivations of variational inference and understanding the evidence lower bound (ELBO). The third post evolves general theory to VAE-specific theory. The fourth post establishes the final connections between theory and code, provides a full VAE implementation written in PyTorch, and shows some interesting experiments.
 
 <figure class="half" style="display:flex">
-  <img src="/images/vae/datagen_final.png" height="100" alt="datagen final">
-  <img src="/images/vae/frey_face.png" height="100" alt="frey face">
+  <img src="/images/vae/datagen_final.png" alt="datagen final" style="max-height: 100px; width: auto">
+  <img src="/images/vae/frey_face.png" alt="frey face" style="max-height: 100px; width: auto">
 </figure>
 
 Posts:

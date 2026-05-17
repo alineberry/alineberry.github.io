@@ -15,7 +15,7 @@ This is the second post in my series: [From KL Divergence to Variational Autoenc
 
 Latent variable models are a powerful form of [typically unsupervised] machine learning used for a variety of tasks such as clustering, dimensionality reduction, data generation, and topic modeling. The basic premise is that there is some latent and unobserved variable $$z_{i}$$ that causes the observed data point $$x_{i}$$. Here is the graphical model (or Bayesian network) representation:
 
-<img src="/images/vae/graphical-model.png" alt="graphical model" width="200">
+<img src="/images/vae/graphical-model.png" alt="graphical model" style="max-width: 200px">
 
 Latent variable models model the probability distribution:
 

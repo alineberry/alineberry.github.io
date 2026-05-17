@@ -423,12 +423,58 @@ article.post .prose pre code {
   font-family: inherit; font-size: inherit;
 }
 
-/* Images inside posts — only border on transparency-prone PNG/SVG (default off) */
+/* Images inside posts. !important overrides inline max-width in legacy
+   posts so the image is always responsive regardless of explicit sizing. */
 article.post .prose img {
   display: block;
+  max-width: 100% !important;
+  height: auto;
   margin: 28px auto;
   border-radius: 4px;
 }
+
+/* Side-by-side figures (legacy posts use display:flex inline) */
+article.post .prose figure {
+  margin: 28px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  align-items: flex-start;
+}
+article.post .prose figure img {
+  min-width: 0;
+  flex: 0 1 auto;
+  margin: 0;
+}
+article.post .prose figure figcaption {
+  flex-basis: 100%;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+  margin-top: 6px;
+  line-height: 1.5;
+  font-family: var(--font-sans);
+}
+
+/* Tables — Jupyter HTML tables can be wider than the column */
+article.post .prose table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  margin: 24px 0;
+}
+article.post .prose th, article.post .prose td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+  white-space: nowrap;
+}
+article.post .prose th { color: var(--text); font-weight: 600; }
+article.post .prose td { color: var(--muted); }
 
 /* Math (KaTeX) */
 article.post .prose .katex-display {
