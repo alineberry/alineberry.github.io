@@ -1,22 +1,22 @@
 /* ============================================================
-   Design tokens — Editorial / Magazine direction (terracotta)
+   Design tokens — Editorial / Magazine direction (steel blue)
    ============================================================ */
 :root {
-  --bg:        #0a0908;
-  --bg-soft:   #14110e;
-  --surface:   #1c1814;
-  --border:    #2a221a;
-  --rule:      #3a2f23;
+  --bg:        #161922;   /* dark gray, cool undertone */
+  --bg-soft:   #1d2030;
+  --surface:   #232838;
+  --border:    #2e3447;
+  --rule:      #3c4360;
 
-  --text:      #f0e8d8;
-  --muted:     #b6a892;   /* WCAG AA on --bg: ~9.5:1 */
-  --faint:     #8a7e6f;   /* WCAG AA on --bg: ~5.0:1 */
+  --text:      #e6e9f0;
+  --muted:     #9ba4b8;   /* WCAG AA on --bg: ~5.6:1 */
+  --faint:     #8a93b3;   /* WCAG AA on --bg: ~4.7:1 */
 
-  --accent:    #d96b3b;   /* terracotta / burnt sienna */
-  --accent-2:  #b2542b;
-  --cream:     #e8d7b3;
+  --accent:        #6b9dff;   /* clean modern blue */
+  --accent-2:      #4a7dd6;   /* deeper for hover/active */
+  --accent-light:  #d4e2ff;   /* pale icy blue for highlights */
 
-  --code-bg:   #15110d;
+  --code-bg:   #11141c;
 
   --radius:    6px;
   --measure:   72ch;
@@ -47,9 +47,9 @@ body {
 }
 
 a { color: var(--accent); text-decoration: none; }
-a:hover { color: var(--cream); }
+a:hover { color: var(--accent-light); }
 
-::selection { background: rgba(217,107,59,0.30); color: var(--cream); }
+::selection { background: rgba(107, 157, 255, 0.30); color: var(--accent-light); }
 
 img { max-width: 100%; height: auto; }
 
@@ -117,7 +117,7 @@ header.site { padding: 32px 0 0; }
   letter-spacing: 0.16em;
   color: var(--text);
 }
-.brand:hover { color: var(--cream); }
+.brand:hover { color: var(--accent-light); }
 
 nav.primary {
   display: flex; gap: 26px;
@@ -193,7 +193,7 @@ footer.site nav a:hover { color: var(--accent); }
 }
 .hero h1 em {
   font-style: italic;
-  color: var(--cream);
+  color: var(--accent-light);
   font-weight: 500;
 }
 
@@ -206,7 +206,7 @@ footer.site nav a:hover { color: var(--accent); }
   margin: 0;
   line-height: 1.7;
 }
-.hero .lede strong { color: var(--cream); font-weight: 600; }
+.hero .lede strong { color: var(--accent-light); font-weight: 600; }
 .hero .lede::first-letter {
   color: var(--accent);
   font-family: var(--font-serif);
@@ -390,7 +390,7 @@ article.post .prose blockquote {
   font-style: italic;
   font-family: var(--font-sans);
 }
-article.post .prose strong { color: var(--cream); font-weight: 600; }
+article.post .prose strong { color: var(--accent-light); font-weight: 600; }
 article.post .prose hr { margin: 40px 0; border-color: var(--rule); }
 
 /* Inline code */
