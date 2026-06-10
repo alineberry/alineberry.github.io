@@ -33,7 +33,7 @@ const kicker = isNote ? 'Note' : 'Essay';
         <div class="post-meta">
           {minutes && <span>{minutes} min read</span>}
           {tags.length > 0 && minutes && <span class="sep">·</span>}
-          {tags.map((t) => <span class="chip">#{t.replace(/\s+/g, '-')}</span>)}
+          {tags.length > 0 && <span>{tags.join(', ')}</span>}
         </div>
       </header>
       <div class="prose">

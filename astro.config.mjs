@@ -12,7 +12,7 @@ export default defineConfig({
   markdown: {
     remarkPlugins: [remarkMath],
     rehypePlugins: [rehypeKatex],
-    shikiConfig: { theme: 'github-dark-dimmed', wrap: false },
+    shikiConfig: { theme: 'vitesse-light', wrap: false },
   },
   integrations: [mdx(), sitemap()],
 });

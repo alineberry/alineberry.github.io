@@ -43,9 +43,8 @@ const count = notes.length;
         <span class="count">{count} notes</span>
       </div>
       <ul class="posts">
-        {notes.map((p, i) => (
+        {notes.map((p) => (
           <PostListItem
-            index={i + 1}
             title={p.data.title}
             href={postHref(p)}
             date={p.data.date}

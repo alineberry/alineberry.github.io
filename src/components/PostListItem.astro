@@ -1,6 +1,5 @@
 ---
 interface Props {
-  index: number;
   title: string;
   href: string;
   date: Date;
@@ -8,21 +7,19 @@ interface Props {
   tags?: string[];
   minutes?: number;
 }
-const { index, title, href, date, description, tags = [], minutes } = Astro.props;
+const { title, href, date, description, tags = [], minutes } = Astro.props;
 const dateStr = date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
-const num = String(index).padStart(2, '0');
 ---
 
 <li>
   <a class="title-link" href={href}>
     <div class="post-row">
-      <span class="num" aria-hidden="true">{num}</span>
+      <time class="when" datetime={date.toISOString()}>{dateStr}</time>
       <div>
         <div class="title">{title}</div>
         {description && <div class="desc">{description}</div>}
         <div class="meta">
-          <time datetime={date.toISOString()}>{dateStr}</time>
-          {minutes && <><span class="dot">·</span><span>{minutes} min</span></>}
+          {minutes && <span>{minutes} min</span>}
           {tags.length > 0 && (
             <>
               <span class="dot">·</span>

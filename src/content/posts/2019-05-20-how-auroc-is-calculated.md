@@ -41,6 +41,7 @@ Many references will describe the computation of the area under the ROC curve us
 <img src="/images/2019-05-20-how-auroc-is-calculated/roc-curve-rectangles.png" alt="ROC Curve Rectangles" style="max-height: 200px; width: auto">
 <figcaption>ROC Curve Composed of Rectangles</figcaption>
 </figure>
+</a>
 
 ## Tutorial
 

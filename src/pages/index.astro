@@ -12,7 +12,7 @@ const lastUpdated = essays[0]?.data.date.toLocaleDateString('en-US', { month: 's
   <section class="hero">
     <div class="wrap">
       <div class="kicker">
-        <span>No. {String(count).padStart(2, '0')} · Machine Learning</span>
+        <span>Machine Learning · Essays &amp; Notes</span>
         <span class="line"></span>
       </div>
       <h1>Notes on ML, written to <em>understand them better</em>.</h1>
@@ -44,9 +44,8 @@ const lastUpdated = essays[0]?.data.date.toLocaleDateString('en-US', { month: 's
         <span class="count">{count} essays</span>
       </div>
       <ul class="posts">
-        {essays.map((p, i) => (
+        {essays.map((p) => (
           <PostListItem
-            index={i + 1}
             title={p.data.title}
             href={postHref(p)}
             date={p.data.date}
