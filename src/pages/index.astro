@@ -4,8 +4,35 @@ import PostListItem from '../components/PostListItem.astro';
 import { getEssays, readingTime, postHref } from '../lib/posts';
 
 const essays = await getEssays();
-const count = essays.length;
-const lastUpdated = essays[0]?.data.date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+// Standalone pages served verbatim from /public (not part of the Markdown
+// posts collection) that should still appear in the writing feed.
+const standalone = [
+  {
+    title: 'SuperBox — what’s really going on with that “free TV” box',
+    href: '/superbox/',
+    date: new Date('2026-06-28'),
+    description:
+      'A SuperBox is a small box you plug into your TV to watch hundreds of channels for a one-time price. Here’s what’s actually happening behind that “free TV forever” deal.',
+    tags: ['explainer'],
+    minutes: undefined as number | undefined,
+  },
+];
+
+const feed = [
+  ...essays.map((p) => ({
+    title: p.data.title,
+    href: postHref(p),
+    date: p.data.date,
+    description: p.data.description,
+    tags: p.data.tags,
+    minutes: readingTime(p.body ?? ''),
+  })),
+  ...standalone,
+].sort((a, b) => b.date.valueOf() - a.date.valueOf());
+
+const count = feed.length;
+const lastUpdated = feed[0]?.date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 ---
 
 <BaseLayout title="Adam Lineberry">
@@ -44,15 +71,15 @@ const lastUpdated = essays[0]?.data.date.toLocaleDateString('en-US', { month: 's
         <span class="count">{count} essays</span>
       </div>
       <ul class="posts">
-        {essays.map((p, i) => (
+        {feed.map((p, i) => (
           <PostListItem
             index={i + 1}
-            title={p.data.title}
-            href={postHref(p)}
-            date={p.data.date}
-            description={p.data.description}
-            tags={p.data.tags}
-            minutes={readingTime(p.body ?? '')}
+            title={p.title}
+            href={p.href}
+            date={p.date}
+            description={p.description}
+            tags={p.tags}
+            minutes={p.minutes}
           />
         ))}
       </ul>

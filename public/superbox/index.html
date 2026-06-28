@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<!--
+  SuperBox IPTV — explain-mode teach-me page
+  Self-contained, dependency-free. Design tokens copied from the teach-me
+  design system (Corsa). Dark mode via the canonical sun/moon toggle.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SuperBox — what's really going on with that "free TV" box</title>
+<style>
+/* ─── Design tokens (inlined) ───────────────────────────────────────────── */
+:root {
+  --color-white: #ffffff;
+  --color-zinc-50:  #fafafa; --color-zinc-100: #f4f4f5;
+  --color-zinc-200: #e4e4e7; --color-zinc-300: #d4d4d8;
+  --color-zinc-400: #a1a1aa; --color-zinc-500: #71717a;
+  --color-zinc-600: #52525b; --color-zinc-700: #3f3f46;
+  --color-zinc-800: #27272a; --color-zinc-900: #18181b;
+  --color-cyan-500: #06b6d4; --color-cyan-600: #0891b2; --color-cyan-700: #0e7490;
+  --color-red-500: #ef4444;  --color-red-600: #dc2626;  --color-red-700: #b91c1c;
+  --color-amber-600: #ca8a04;
+
+  --color-text-strong:   #18181b;
+  --color-text-weak:     rgba(24,24,27,0.70);
+  --color-text-brand:    #0e7490;
+  --color-text-disabled: rgba(24,24,27,0.30);
+
+  --color-stroke-strong:   rgba(24,24,27,0.40);
+  --color-stroke-weak:     rgba(24,24,27,0.10);
+  --color-stroke-selected: #0e7490;
+  --color-stroke-focus:    #0e7490;
+
+  --color-fill-weak:         rgba(24,24,27,0.05);
+  --color-fill-brand-strong: #0e7490;
+
+  --color-bg-base:    #ffffff;
+  --color-bg-raised:  #ffffff;
+  --color-bg-sunken:  #fafaf9;
+  --color-bg-inverse: #18181b;
+
+  --font-family: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono:   "Geist Mono", ui-monospace, monospace;
+
+  --space-4:4px; --space-6:6px; --space-8:8px; --space-12:12px;
+  --space-16:16px; --space-20:20px; --space-24:24px; --space-32:32px;
+  --space-48:48px; --space-64:64px;
+
+  --radius:4px; --radius-md:6px; --radius-lg:8px; --radius-xl:12px;
+  --radius-2xl:16px; --radius-full:9999px;
+
+  --shadow-raised:   0 1px 3px 0 rgba(0,0,0,0.08), 0 1px 2px -1px rgba(0,0,0,0.06);
+  --shadow-floating: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.04);
+
+  --transition-fast: 120ms ease;
+  --transition-base: 200ms ease;
+
+  /* node tints */
+  --node-cyan-bg: rgba(14,116,144,0.07);  --node-cyan-bd: rgba(14,116,144,0.32);  --node-cyan-icon:#0e7490;
+  --node-green-bg: rgba(21,128,61,0.07);  --node-green-bd: rgba(21,128,61,0.32);  --node-green-icon:#15803d;
+  --node-amber-bg: rgba(161,98,7,0.08);   --node-amber-bd: rgba(161,98,7,0.32);   --node-amber-icon:#a16207;
+  --node-red-bg: rgba(185,28,28,0.07);    --node-red-bd: rgba(185,28,28,0.34);    --node-red-icon:#b91c1c;
+  --node-zinc-bg: rgba(24,24,27,0.04);    --node-zinc-bd: rgba(24,24,27,0.20);    --node-zinc-icon:#52525b;
+
+  --edge-clean:   rgba(24,24,27,0.55);
+  --edge-pirate:  #b91c1c;
+
+  --color-danger-bg: rgba(185,28,28,0.07);
+  --color-danger-bd: rgba(185,28,28,0.28);
+  --color-danger-text: #b91c1c;
+}
+
+.dark {
+  --color-text-strong:   #ffffff;
+  --color-text-weak:     rgba(255,255,255,0.66);
+  --color-text-brand:    rgba(6,182,212,0.92);
+  --color-text-disabled: rgba(255,255,255,0.30);
+  --color-stroke-strong: rgba(255,255,255,0.50);
+  --color-stroke-weak:   rgba(255,255,255,0.12);
+  --color-stroke-selected: #06b6d4;
+  --color-stroke-focus:    #06b6d4;
+  --color-fill-weak:     rgba(255,255,255,0.06);
+  --color-fill-brand-strong: #06b6d4;
+  --color-bg-base:    #18181b;
+  --color-bg-raised:  #27272a;
+  --color-bg-sunken:  #000000;
+  --color-bg-inverse: #ffffff;
+  --shadow-raised:   0 1px 3px 0 rgba(0,0,0,0.30), 0 1px 2px -1px rgba(0,0,0,0.20);
+  --shadow-floating: 0 10px 15px -3px rgba(0,0,0,0.30), 0 4px 6px -4px rgba(0,0,0,0.15);
+
+  --node-cyan-bg: rgba(6,182,212,0.10);   --node-cyan-bd: rgba(6,182,212,0.38);   --node-cyan-icon:#22d3ee;
+  --node-green-bg: rgba(74,222,128,0.08); --node-green-bd: rgba(74,222,128,0.32);  --node-green-icon:#4ade80;
+  --node-amber-bg: rgba(234,179,8,0.09);  --node-amber-bd: rgba(234,179,8,0.34);   --node-amber-icon:#fbbf24;
+  --node-red-bg: rgba(248,113,113,0.09);  --node-red-bd: rgba(248,113,113,0.38);   --node-red-icon:#f87171;
+  --node-zinc-bg: rgba(255,255,255,0.05); --node-zinc-bd: rgba(255,255,255,0.20);  --node-zinc-icon:#a1a1aa;
+
+  --edge-clean:  rgba(255,255,255,0.45);
+  --edge-pirate: #f87171;
+
+  --color-danger-bg: rgba(248,113,113,0.09);
+  --color-danger-bd: rgba(248,113,113,0.30);
+  --color-danger-text: #f87171;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-family);
+  background: var(--color-bg-base);
+  color: var(--color-text-strong);
+  line-height: 1.6;
+  transition: background var(--transition-base), color var(--transition-base);
+}
+
+a { color: var(--color-text-brand); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* source link badge */
+.src {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 12px; font-weight: 500;
+  color: var(--color-text-brand);
+  padding: 1px 8px;
+  border: 1px solid var(--color-stroke-weak);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.src:hover { text-decoration: none; background: var(--color-fill-weak); border-color: var(--color-stroke-strong); }
+.src svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+/* ─── Header ─────────────────────────────────────────────────────────────── */
+#page-header {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--space-12) var(--space-24);
+  border-bottom: 1px solid var(--color-stroke-weak);
+  background: var(--color-bg-raised);
+  gap: var(--space-16);
+}
+#header-text h1 { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+#header-text p { font-size: 12px; color: var(--color-text-weak); margin-top: 1px; }
+
+.dark-toggle {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: var(--space-8); height: 40px; padding: 0 var(--space-16);
+  font-family: var(--font-family); font-size: 14px; font-weight: 500;
+  color: var(--color-text-strong); background: transparent; border: none;
+  border-radius: var(--radius-lg); cursor: pointer;
+  transition: background var(--transition-fast); flex-shrink: 0;
+}
+.dark-toggle:hover { background: var(--color-fill-weak); }
+.dark-toggle:focus-visible { outline: 2px solid var(--color-stroke-focus); outline-offset: 2px; }
+.dark-toggle-icon { width: 20px; height: 20px; flex-shrink: 0; }
+
+/* ─── Layout ─────────────────────────────────────────────────────────────── */
+main { max-width: 920px; margin: 0 auto; padding: var(--space-48) var(--space-24) var(--space-64); }
+section { margin-top: var(--space-64); scroll-margin-top: 72px; }
+
+.eyebrow {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.10em; text-transform: uppercase;
+  color: var(--color-text-brand); margin-bottom: var(--space-12);
+}
+h2 { font-size: 24px; font-weight: 650; letter-spacing: -0.02em; line-height: 1.2; }
+h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+p { font-size: 16px; color: var(--color-text-weak); margin-top: var(--space-12); }
+p.lead { font-size: 18px; color: var(--color-text-strong); }
+.section-intro { max-width: 68ch; }
+
+/* ─── Hero ───────────────────────────────────────────────────────────────── */
+#hero h1 {
+  font-size: 40px; font-weight: 680; letter-spacing: -0.03em; line-height: 1.08;
+}
+@media (max-width: 600px){ #hero h1 { font-size: 30px; } }
+#hero .lead { margin-top: var(--space-20); max-width: 64ch; }
+
+/* ─── Timeline / flow ────────────────────────────────────────────────────── */
+#flow-step-header { display: flex; align-items: flex-start; gap: var(--space-16); margin-bottom: var(--space-12); }
+#flow-counter {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-brand);
+  background: rgba(14,116,144,0.09); border: 1px solid rgba(14,116,144,0.18);
+  border-radius: var(--radius-lg); padding: var(--space-4) var(--space-12);
+  white-space: nowrap; flex-shrink: 0; line-height: 1.8;
+}
+.dark #flow-counter { background: rgba(6,182,212,0.10); border-color: rgba(6,182,212,0.22); }
+#flow-info { flex: 1; }
+#flow-title { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; transition: color var(--transition-base); }
+#flow-desc { font-size: 14px; color: var(--color-text-weak); line-height: 1.6; margin-top: var(--space-4); transition: color var(--transition-base); }
+
+#canvas-wrap {
+  position: relative; width: 100%; height: 300px;
+  background-image: radial-gradient(circle, var(--color-stroke-weak) 1px, transparent 1px);
+  background-size: 24px 24px; background-color: var(--color-bg-sunken);
+  border: 1px solid var(--color-stroke-weak); border-radius: var(--radius-xl); overflow: hidden;
+}
+#canvas { position: relative; width: 100%; height: 100%; }
+#edge-svg { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none; overflow: visible; }
+
+.node {
+  position: absolute; display: flex; flex-direction: column; align-items: center;
+  gap: var(--space-6); padding: 10px; border-radius: var(--radius-lg);
+  border: 1.5px solid; user-select: none; width: 122px; min-height: 76px;
+  background: var(--color-bg-raised); box-shadow: var(--shadow-raised);
+  text-align: center; cursor: grab;
+  transition: opacity var(--transition-base), box-shadow var(--transition-base);
+}
+.node.dimmed { opacity: 0.16; }
+.node.active { opacity: 1; }
+.node.dragging { cursor: grabbing; opacity: 1; box-shadow: var(--shadow-floating); z-index: 10; transition: none; }
+
+.node-legit  { background: var(--node-green-bg); border-color: var(--node-green-bd); }
+.node-pirate { background: var(--node-red-bg);   border-color: var(--node-red-bd); }
+.node-server { background: var(--node-amber-bg); border-color: var(--node-amber-bd); }
+.node-device { background: var(--node-cyan-bg);  border-color: var(--node-cyan-bd); }
+.node-user   { background: var(--node-zinc-bg);  border-color: var(--node-zinc-bd); }
+
+.node-legit.active  { box-shadow: var(--shadow-raised), 0 0 0 2px var(--node-green-bd), 0 0 14px rgba(21,128,61,0.22); }
+.node-pirate.active { box-shadow: var(--shadow-raised), 0 0 0 2px var(--node-red-bd),   0 0 16px rgba(185,28,28,0.28); }
+.node-server.active { box-shadow: var(--shadow-raised), 0 0 0 2px var(--node-amber-bd), 0 0 14px rgba(161,98,7,0.22); }
+.node-device.active { box-shadow: var(--shadow-raised), 0 0 0 2px var(--node-cyan-bd),  0 0 14px rgba(14,116,144,0.22); }
+.node-user.active   { box-shadow: var(--shadow-raised), 0 0 0 2px var(--node-zinc-bd),  0 0 14px rgba(82,82,91,0.22); }
+
+.node-icon { width: 26px; height: 26px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.node-icon svg { width: 100%; height: 100%; }
+.node-legit  .node-icon { color: var(--node-green-icon); }
+.node-pirate .node-icon { color: var(--node-red-icon); }
+.node-server .node-icon { color: var(--node-amber-icon); }
+.node-device .node-icon { color: var(--node-cyan-icon); }
+.node-user   .node-icon { color: var(--node-zinc-icon); }
+.node-label { font-size: 12px; font-weight: 600; line-height: 1.25; letter-spacing: -0.01em; }
+.node-tag { font-size: 10px; font-weight: 500; color: var(--color-text-disabled); text-transform: uppercase; letter-spacing: 0.06em; }
+
+path.edge { transition: opacity var(--transition-base); }
+path.edge.dimmed { opacity: 0.10; }
+path.edge.active { opacity: 1; }
+path.edge.flowing { stroke-width: 2.5; }
+
+#flow-controls {
+  margin-top: var(--space-16);
+  background: var(--color-bg-raised); border: 1px solid var(--color-stroke-weak);
+  border-radius: var(--radius-xl); padding: var(--space-12) var(--space-16);
+  box-shadow: var(--shadow-raised); display: flex; flex-direction: column; gap: var(--space-12);
+}
+.scrubber-wrap { display: flex; flex-direction: column; gap: var(--space-6); }
+.scrubber-labels { display: flex; justify-content: space-between; font-size: 10px; font-family: var(--font-mono); color: var(--color-text-disabled); letter-spacing: 0.04em; padding: 0 2px; }
+input[type="range"]#scrubber {
+  -webkit-appearance: none; appearance: none; width: 100%; height: 4px;
+  border-radius: var(--radius-full); background: var(--color-stroke-weak); outline: none; cursor: pointer;
+}
+input[type="range"]#scrubber:focus-visible { outline: 2px solid var(--color-stroke-focus); outline-offset: 3px; }
+input[type="range"]#scrubber::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
+  background: var(--color-fill-brand-strong); border: 2px solid var(--color-bg-raised);
+  box-shadow: 0 0 0 1px var(--color-stroke-selected), var(--shadow-raised); cursor: pointer;
+}
+input[type="range"]#scrubber::-moz-range-thumb {
+  width: 14px; height: 14px; border-radius: 50%; background: var(--color-fill-brand-strong);
+  border: 2px solid var(--color-bg-raised); box-shadow: 0 0 0 1px var(--color-stroke-selected); cursor: pointer;
+}
+.btn-row { display: flex; align-items: center; gap: var(--space-8); flex-wrap: wrap; }
+
+.btn-primary {
+  display:inline-flex; align-items:center; justify-content:center; height:40px; padding:0 var(--space-20);
+  font-family:var(--font-family); font-size:14px; font-weight:500; color:#fff;
+  background:var(--color-fill-brand-strong); border:none; border-radius:var(--radius-lg);
+  cursor:pointer; box-shadow: var(--shadow-raised);
+  transition: background var(--transition-fast), opacity var(--transition-fast); flex-shrink:0;
+}
+.btn-primary:hover { background: var(--color-cyan-600); }
+.btn-primary:focus-visible { outline: 2px solid var(--color-stroke-focus); outline-offset: 2px; }
+.btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn-secondary {
+  display:inline-flex; align-items:center; justify-content:center; height:40px; padding:0 var(--space-20);
+  font-family:var(--font-family); font-size:14px; font-weight:500; color:var(--color-text-strong);
+  background:transparent; border:1.5px solid var(--color-stroke-strong); border-radius:var(--radius-lg);
+  cursor:pointer; transition: background var(--transition-fast), opacity var(--transition-fast); flex-shrink:0;
+}
+.btn-secondary:hover { background: var(--color-fill-weak); }
+.btn-secondary:focus-visible { outline: 2px solid var(--color-stroke-focus); outline-offset: 2px; }
+.btn-secondary:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn-play {
+  display:inline-flex; align-items:center; justify-content:center; height:40px; width:40px;
+  color:var(--color-text-strong); background:var(--color-fill-weak);
+  border:1.5px solid var(--color-stroke-weak); border-radius:var(--radius-lg);
+  cursor:pointer; transition: background var(--transition-fast); flex-shrink:0;
+}
+.btn-play:hover { background: var(--color-stroke-weak); }
+.btn-play:focus-visible { outline: 2px solid var(--color-stroke-focus); outline-offset: 2px; }
+.btn-tertiary {
+  display:inline-flex; align-items:center; justify-content:center; gap: var(--space-6); height:40px; padding:0 var(--space-12);
+  font-family:var(--font-family); font-size:14px; font-weight:500; color:var(--color-text-weak);
+  background:transparent; border:none; border-radius:var(--radius-lg); cursor:pointer;
+  transition: background var(--transition-fast), color var(--transition-fast); flex-shrink:0;
+}
+.btn-tertiary:hover { background: var(--color-fill-weak); color: var(--color-text-strong); }
+.btn-tertiary svg { width: 15px; height: 15px; }
+.spacer { flex: 1; }
+
+/* ─── Cards (lawsuits) ───────────────────────────────────────────────────── */
+.card-grid { margin-top: var(--space-24); display: grid; gap: var(--space-16); grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.card {
+  border: 1px solid var(--color-stroke-weak); border-radius: var(--radius-xl);
+  padding: var(--space-20); background: var(--color-bg-raised); box-shadow: var(--shadow-raised);
+  display: flex; flex-direction: column; gap: var(--space-8);
+}
+.card .chip {
+  align-self: flex-start; font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.04em; color: var(--color-text-brand);
+  background: rgba(14,116,144,0.09); border: 1px solid rgba(14,116,144,0.18);
+  padding: 2px 8px; border-radius: var(--radius-full);
+}
+.dark .card .chip { background: rgba(6,182,212,0.10); border-color: rgba(6,182,212,0.22); }
+.card h3 { font-size: 16px; }
+.card p { font-size: 14px; margin-top: 0; }
+.card .card-foot { margin-top: auto; padding-top: var(--space-8); }
+
+.legal-note {
+  margin-top: var(--space-20); padding: var(--space-16) var(--space-20);
+  border: 1px solid var(--color-stroke-weak); border-left: 3px solid var(--color-stroke-selected);
+  border-radius: var(--radius-lg); background: var(--color-bg-sunken);
+}
+.legal-note p { margin-top: 0; font-size: 14px; }
+
+/* ─── FBI callout ────────────────────────────────────────────────────────── */
+.callout {
+  margin-top: var(--space-24); display: flex; gap: var(--space-16);
+  padding: var(--space-24); border-radius: var(--radius-2xl);
+  background: var(--color-danger-bg); border: 1px solid var(--color-danger-bd);
+}
+.callout-icon {
+  flex-shrink: 0; width: 44px; height: 44px; border-radius: var(--radius-lg);
+  display:flex; align-items:center; justify-content:center;
+  background: var(--color-danger-bd); color: var(--color-danger-text);
+}
+.callout-icon svg { width: 24px; height: 24px; }
+.callout h3 { color: var(--color-danger-text); font-size: 16px; }
+.callout p { margin-top: var(--space-8); font-size: 15px; color: var(--color-text-strong); }
+.callout .callout-body { font-size: 15px; }
+
+/* ─── Risk modules ───────────────────────────────────────────────────────── */
+.risk { margin-top: var(--space-32); border: 1px solid var(--color-stroke-weak); border-radius: var(--radius-2xl); overflow: hidden; background: var(--color-bg-raised); box-shadow: var(--shadow-raised); }
+.risk-head { padding: var(--space-20) var(--space-24); display: flex; gap: var(--space-12); align-items: flex-start; border-bottom: 1px solid var(--color-stroke-weak); }
+.risk-num {
+  flex-shrink: 0; width: 28px; height: 28px; border-radius: var(--radius-full);
+  display:flex; align-items:center; justify-content:center;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 700;
+  background: var(--color-fill-brand-strong); color: #fff;
+}
+.risk-head h3 { font-size: 17px; }
+.risk-head p { margin-top: 2px; font-size: 14px; }
+.risk-body { padding: var(--space-24); }
+
+/* 5a — reality toggle */
+.toggle-switch {
+  display: inline-flex; align-items: center; gap: var(--space-12);
+  margin-bottom: var(--space-20);
+}
+.switch {
+  position: relative; width: 132px; height: 36px; border-radius: var(--radius-full);
+  background: var(--color-fill-weak); border: 1px solid var(--color-stroke-weak);
+  cursor: pointer; padding: 0; flex-shrink: 0;
+  transition: background var(--transition-base);
+}
+.switch .knob {
+  position: absolute; top: 3px; left: 3px; width: 62px; height: 28px;
+  border-radius: var(--radius-full); background: var(--color-bg-raised);
+  box-shadow: var(--shadow-raised); transition: transform var(--transition-base);
+  display:flex; align-items:center; justify-content:center;
+  font-size: 11px; font-weight: 600; color: var(--color-text-strong);
+}
+.switch.on { background: var(--color-danger-bd); }
+.switch.on .knob { transform: translateX(64px); color: var(--color-danger-text); }
+.switch-caption { font-size: 13px; color: var(--color-text-weak); }
+
+.supply-chain { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-8); margin-bottom: var(--space-20); }
+@media (max-width: 640px){ .supply-chain { grid-template-columns: repeat(2, 1fr); } }
+.sc-step {
+  border: 1px solid var(--color-stroke-weak); border-radius: var(--radius-lg);
+  padding: var(--space-12); text-align: center; background: var(--color-bg-sunken);
+  transition: border-color var(--transition-base), background var(--transition-base);
+}
+.sc-step.infected { border-color: var(--color-danger-bd); background: var(--color-danger-bg); }
+.sc-step .sc-icon { width: 24px; height: 24px; margin: 0 auto var(--space-8); color: var(--color-text-weak); }
+.sc-step.infected .sc-icon { color: var(--color-danger-text); }
+.sc-step .sc-label { font-size: 12px; font-weight: 600; }
+.sc-step .sc-sub { font-size: 11px; color: var(--color-text-disabled); margin-top: 2px; min-height: 14px; }
+.sc-step.infected .sc-sub { color: var(--color-danger-text); }
+
+.reality-panel {
+  border: 1px solid var(--color-stroke-weak); border-radius: var(--radius-lg);
+  padding: var(--space-16) var(--space-20); background: var(--color-bg-sunken);
+}
+.reality-panel h4 { font-size: 14px; font-weight: 650; margin-bottom: var(--space-8); display:flex; align-items:center; gap: 8px; }
+.reality-panel.bad h4 { color: var(--color-danger-text); }
+.reality-panel ul { list-style: none; display: flex; flex-direction: column; gap: var(--space-6); }
+.reality-panel li { font-size: 14px; color: var(--color-text-weak); display: flex; gap: 8px; align-items: flex-start; }
+.reality-panel li .mk { flex-shrink: 0; margin-top: 3px; width: 14px; height: 14px; }
+
+/* 2 — home internet shared with strangers */
+#proxy-stage, #spy-stage {
+  position: relative; height: 260px; border: 1px solid var(--color-stroke-weak);
+  border-radius: var(--radius-lg); background: var(--color-bg-sunken); overflow: hidden;
+  margin-bottom: var(--space-12);
+}
+#proxy-svg, #spy-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+#proxy-svg-m, #spy-svg-m { display: none; position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* On phones the wide landscape diagrams shrink too much. Swap in portrait
+   (vertical) versions so everything renders near full size, no sideways scroll. */
+@media (max-width: 560px) {
+  #proxy-stage { height: auto; aspect-ratio: 340 / 460; }
+  #spy-stage   { height: auto; aspect-ratio: 340 / 510; }
+  #proxy-svg, #spy-svg { display: none; }
+  #proxy-svg-m, #spy-svg-m { display: block; }
+}
+.proxy-label { font-family: var(--font-family); font-size: 12px; font-weight: 600; fill: var(--color-text-strong); }
+.proxy-sub   { font-family: var(--font-mono); font-size: 10px; fill: var(--color-text-disabled); }
+.proxy-box   { fill: var(--color-bg-raised); stroke: var(--color-stroke-strong); stroke-width: 1.5; }
+.proxy-box.router { stroke: var(--node-cyan-bd); transition: stroke var(--transition-base); }
+.proxy-box.router.hijacked { stroke: var(--node-red-bd); }
+.proxy-line { stroke: var(--edge-clean); stroke-width: 1.5; fill: none; }
+.proxy-flow { stroke: var(--edge-pirate); stroke-width: 2; fill: none; stroke-dasharray: 5 5; opacity: 0; }
+.proxy-flow.on { opacity: 1; animation: dash 0.7s linear infinite; }
+@keyframes dash { to { stroke-dashoffset: -20; } }
+.proxy-pkt { fill: var(--edge-pirate); opacity: 0; }
+.proxy-pkt.on { opacity: 1; }
+.proxy-pkt-calm { fill: var(--node-cyan-icon); opacity: 0; }
+.proxy-pkt-calm.on { opacity: 1; }
+.home-zone {
+  fill: var(--node-cyan-bg); stroke: var(--node-cyan-bd); stroke-width: 1.5;
+  stroke-dasharray: 4 4; transition: fill var(--transition-base), stroke var(--transition-base);
+}
+.home-zone.hijacked { fill: var(--node-red-bg); stroke: var(--node-red-bd); }
+.home-zone-label {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase; fill: var(--color-text-disabled);
+}
+.stranger-node { opacity: 0; transition: opacity var(--transition-base); }
+.stranger-node.on { opacity: 1; fill: var(--node-red-bg); stroke: var(--node-red-bd); }
+.target-node { fill: var(--node-amber-bg); stroke: var(--node-amber-bd); }
+.proxy-cap { font-size: 13px; color: var(--color-text-weak); margin-bottom: var(--space-12); }
+.proxy-cap b { color: var(--color-danger-text); font-weight: 600; }
+
+/* ─── Takeaway ───────────────────────────────────────────────────────────── */
+.takeaway {
+  margin-top: var(--space-24); padding: var(--space-24) var(--space-32);
+  border-radius: var(--radius-2xl); background: var(--color-bg-inverse); color: var(--color-bg-base);
+}
+.takeaway p { color: var(--color-bg-base); opacity: 0.9; }
+.takeaway p.lead { opacity: 1; font-weight: 600; }
+.takeaway .vlan {
+  margin-top: var(--space-16); padding-top: var(--space-16);
+  border-top: 1px solid rgba(255,255,255,0.18); font-size: 14px;
+}
+.dark .takeaway .vlan { border-top-color: rgba(0,0,0,0.18); }
+
+/* ─── Glossary ───────────────────────────────────────────────────────────── */
+.glossary { margin-top: var(--space-24); border: 1px solid var(--color-stroke-weak); border-radius: var(--radius-xl); overflow: hidden; }
+.gloss-row { border-bottom: 1px solid var(--color-stroke-weak); }
+.gloss-row:last-child { border-bottom: none; }
+.gloss-btn {
+  width: 100%; display: flex; align-items: baseline; gap: var(--space-12);
+  padding: var(--space-12) var(--space-20); background: transparent; border: none;
+  cursor: pointer; text-align: left; font-family: var(--font-family); color: var(--color-text-strong);
+  transition: background var(--transition-fast);
+}
+.gloss-btn:hover { background: var(--color-fill-weak); }
+.gloss-btn:focus-visible { outline: 2px solid var(--color-stroke-focus); outline-offset: -2px; }
+.gloss-term { font-size: 15px; font-weight: 600; flex-shrink: 0; min-width: 180px; }
+@media (max-width: 560px){ .gloss-term { min-width: 0; } }
+.gloss-short { font-size: 14px; color: var(--color-text-weak); flex: 1; }
+.gloss-chev { width: 16px; height: 16px; color: var(--color-text-disabled); transition: transform var(--transition-base); flex-shrink: 0; align-self: center; }
+.gloss-row.open .gloss-chev { transform: rotate(90deg); }
+.gloss-detail { max-height: 0; overflow: hidden; transition: max-height var(--transition-base); }
+.gloss-detail-inner { padding: 0 var(--space-20) var(--space-16) var(--space-20); font-size: 14px; color: var(--color-text-weak); }
+.gloss-search-wrap { padding: var(--space-12) var(--space-16); border-bottom: 1px solid var(--color-stroke-weak); }
+.gloss-search {
+  width: 100%; height: 40px; padding: 0 var(--space-16); font-family: var(--font-family); font-size: 14px;
+  color: var(--color-text-strong); background: var(--color-bg-base);
+  border: 1px solid var(--color-stroke-weak); border-radius: var(--radius-lg); outline: none;
+}
+.gloss-search:focus { border-color: var(--color-stroke-focus); }
+.gloss-row.hidden { display: none; }
+
+/* ─── Sources ────────────────────────────────────────────────────────────── */
+.sources { margin-top: var(--space-24); display: flex; flex-direction: column; gap: var(--space-8); }
+.source-item {
+  display: flex; gap: var(--space-12); align-items: baseline;
+  padding: var(--space-12) var(--space-16); border: 1px solid var(--color-stroke-weak);
+  border-radius: var(--radius-lg); background: var(--color-bg-raised);
+}
+.source-item .s-num { font-family: var(--font-mono); font-size: 12px; color: var(--color-text-disabled); flex-shrink: 0; }
+.source-item .s-body { flex: 1; min-width: 0; }
+.source-item .s-title { font-size: 14px; font-weight: 600; }
+.source-item .s-url { font-size: 12px; color: var(--color-text-weak); word-break: break-all; }
+
+footer { margin-top: var(--space-64); padding-top: var(--space-24); border-top: 1px solid var(--color-stroke-weak); font-size: 12px; color: var(--color-text-disabled); }
+</style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────── -->
+<div id="page-header">
+  <div id="header-text">
+    <h1>SuperBox</h1>
+    <p>What's really going on with that "free TV forever" box</p>
+  </div>
+  <button class="dark-toggle" id="darkToggle" type="button" onclick="toggleDark()" aria-label="Toggle dark mode">
+    <svg id="darkIcon" class="dark-toggle-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="10" cy="10" r="3.5"/>
+      <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42"/>
+    </svg>
+    <span id="darkLabel">Dark mode</span>
+  </button>
+</div>
+
+<main>
+
+  <!-- ── Hero ─────────────────────────────────────────────────────────── -->
+  <section id="hero" style="margin-top: var(--space-16);">
+    <div class="eyebrow">Start here</div>
+    <h1>You bought "free TV forever." Here's what's actually happening.</h1>
+    <p class="lead">
+      A SuperBox is a small box you plug into your TV to watch hundreds of channels for a
+      one-time price. It feels like a great deal. But the channels are being taken and re-sold
+      by people who never paid for them — and the box quietly does a few other things you were
+      never told about. This page walks you through it.
+    </p>
+  </section>
+
+  <!-- ── Flow: re-streamed pirated feeds ──────────────────────────────── -->
+  <section id="flow">
+    <div class="eyebrow">The basics</div>
+    <h2>Where the "free" channels really come from</h2>
+    <p class="section-intro">
+      The TV shows on your box don't come from the companies that made them. Someone else grabs
+      them and passes them along to you. Press play, or use Prev / Next, to follow the trip a
+      channel takes before it reaches your screen.
+    </p>
+
+    <div style="margin-top: var(--space-16);">
+      <div id="flow-step-header">
+        <div id="flow-counter">OVERVIEW</div>
+        <div id="flow-info">
+          <div id="flow-title">The trip a channel takes</div>
+          <div id="flow-desc">A real TV channel gets copied, re-sold by someone who never paid for it, and sent to your living room. Step through it to see what happens at each stop.</div>
+        </div>
+      </div>
+
+      <div id="canvas-wrap">
+        <div id="canvas">
+          <svg id="edge-svg" xmlns="http://www.w3.org/2000/svg"><defs id="svg-defs"></defs></svg>
+
+          <!-- legit source -->
+          <div class="node node-legit" id="n-source" data-id="source">
+            <div class="node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg></div>
+            <span class="node-label">The real channel</span>
+            <span class="node-tag">e.g. cable, Sling</span>
+          </div>
+
+          <!-- pirate ripper -->
+          <div class="node node-pirate" id="n-ripper" data-id="ripper">
+            <div class="node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5 4 4"/><path d="M14.5 5.5 18 2l4 4-3.5 3.5"/><path d="M3 21l9-9"/><path d="M12.5 12.5 9 9l-7 7 4 4 7-7z"/></svg></div>
+            <span class="node-label">Criminal copies it</span>
+            <span class="node-tag">grabs the feed</span>
+          </div>
+
+          <!-- iptv servers -->
+          <div class="node node-server" id="n-servers" data-id="servers">
+            <div class="node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg></div>
+            <span class="node-label">Their own servers</span>
+            <span class="node-tag">nobody paid for it</span>
+          </div>
+
+          <!-- superbox device -->
+          <div class="node node-device" id="n-box" data-id="box">
+            <div class="node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+            <span class="node-label">Your SuperBox</span>
+            <span class="node-tag">built-in apps</span>
+          </div>
+
+          <!-- end user -->
+          <div class="node node-user" id="n-viewer" data-id="viewer">
+            <div class="node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+            <span class="node-label">You at home</span>
+            <span class="node-tag">"free" TV</span>
+          </div>
+
+        </div>
+      </div>
+
+      <div id="flow-controls">
+        <div class="scrubber-wrap">
+          <input type="range" id="scrubber" min="0" max="5" value="0" step="1" aria-label="Flow step scrubber">
+          <div class="scrubber-labels" id="scrubber-labels"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn-play" id="btn-play" type="button" aria-label="Play / pause">
+            <svg id="play-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75"><polygon points="4,2 14,8 4,14" fill="currentColor" stroke="none"/></svg>
+          </button>
+          <button class="btn-secondary" id="btn-prev" type="button">← Prev</button>
+          <button class="btn-primary" id="btn-next" type="button">Next →</button>
+          <span class="spacer"></span>
+          <button class="btn-tertiary" id="btn-reset" type="button" title="Restore the original node layout">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 8a5.5 5.5 0 1 1 1.6 3.9"/><path d="M2.5 13v-3h3"/></svg>
+            Reset layout
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Security risk modules ────────────────────────────────────────── -->
+  <section id="risks">
+    <div class="eyebrow">What it does to you</div>
+    <h2>What the box quietly does behind your back</h2>
+    <p class="section-intro">
+      The stolen channels are only part of it. Security researchers who took these boxes apart
+      found the box itself does something you were never told about — see it in action below.
+    </p>
+
+    <!-- home internet gets shared with hackers -->
+    <div class="risk" id="risk-b">
+      <div class="risk-head">
+        <div>
+          <h3>Your home internet gets secretly shared with hackers</h3>
+          <p>Without you knowing, your internet connection gets quietly rented out to hackers you'll never meet.</p>
+        </div>
+      </div>
+      <div class="risk-body">
+        <p style="margin-top:0;">
+          Researchers who looked inside these boxes found they quietly let hackers borrow your
+          home internet. The hackers send their own online activity <em>through your house</em> to
+          whatever they're going after — so it looks like it came from your home, not theirs. You
+          get nothing for it, and you never agreed to it. Here's what that looks like:
+        </p>
+
+        <div id="proxy-stage">
+          <svg id="proxy-svg" viewBox="0 0 600 260" preserveAspectRatio="xMidYMid meet">
+            <!-- flows: hackers -> your box -> their target -->
+            <path class="proxy-flow on" id="flow-in" d="M92 132 C 150 132, 175 132, 209 132"/>
+            <path class="proxy-flow on" id="flow-out" d="M333 132 C 390 132, 430 132, 464 132"/>
+
+            <!-- your home (the house) -->
+            <rect class="home-zone hijacked" id="home-zone" x="182" y="72" width="178" height="120" rx="14"/>
+            <text class="home-zone-label" x="271" y="64" text-anchor="middle">Your home</text>
+
+            <!-- your box / internet connection (the relay), centered in the home -->
+            <rect class="proxy-box router hijacked" id="proxy-router" x="209" y="103" width="124" height="58" rx="8"/>
+            <text class="proxy-label" x="271" y="128" text-anchor="middle">Your box</text>
+            <text class="proxy-sub" x="271" y="143" text-anchor="middle">+ home internet</text>
+
+            <!-- hackers source -->
+            <circle class="proxy-box stranger-node on" id="stranger-node" cx="60" cy="132" r="30"/>
+            <text class="proxy-label" x="60" y="136" text-anchor="middle">Hackers</text>
+            <text class="proxy-sub" x="60" y="178" text-anchor="middle">somewhere online</text>
+
+            <!-- their target -->
+            <rect class="proxy-box target-node" id="target-node" x="464" y="103" width="124" height="58" rx="8"/>
+            <text class="proxy-label" x="526" y="128" text-anchor="middle">Their target</text>
+            <text class="proxy-sub" x="526" y="143" text-anchor="middle">a website or bank</text>
+
+            <!-- moving packets: hackers' traffic routed through your home -->
+            <circle class="proxy-pkt on" id="pkt-in" r="5"/>
+            <circle class="proxy-pkt on" id="pkt-out" r="5"/>
+          </svg>
+
+          <!-- portrait version for phones (vertical: hackers → your box → target) -->
+          <svg id="proxy-svg-m" viewBox="0 0 340 460" preserveAspectRatio="xMidYMid meet">
+            <path class="proxy-flow on" id="flow-in-m"  d="M170 92 C 170 130, 170 152, 170 188"/>
+            <path class="proxy-flow on" id="flow-out-m" d="M170 246 C 170 300, 170 332, 170 372"/>
+
+            <rect class="home-zone hijacked" x="70" y="152" width="200" height="126" rx="14"/>
+            <text class="home-zone-label" x="170" y="144" text-anchor="middle">Your home</text>
+
+            <rect class="proxy-box router hijacked" x="110" y="186" width="120" height="58" rx="8"/>
+            <text class="proxy-label" x="170" y="210" text-anchor="middle">Your box</text>
+            <text class="proxy-sub" x="170" y="225" text-anchor="middle">+ home internet</text>
+
+            <circle class="proxy-box stranger-node on" cx="170" cy="56" r="34"/>
+            <text class="proxy-label" x="170" y="60" text-anchor="middle">Hackers</text>
+            <text class="proxy-sub" x="170" y="106" text-anchor="middle">somewhere online</text>
+
+            <rect class="proxy-box target-node" x="100" y="372" width="140" height="60" rx="8"/>
+            <text class="proxy-label" x="170" y="396" text-anchor="middle">Their target</text>
+            <text class="proxy-sub" x="170" y="411" text-anchor="middle">a website or bank</text>
+
+            <circle class="proxy-pkt on" id="pkt-in-m" r="5"/>
+            <circle class="proxy-pkt on" id="pkt-out-m" r="5"/>
+          </svg>
+        </div>
+
+        <p class="proxy-cap" id="proxy-cap" style="margin-top: var(--space-12);">
+          Hackers route their activity <b>through your home internet</b> and out to their target — so the attack looks like it came from you.
+        </p>
+
+        <p style="margin-top: var(--space-16);">
+          The trouble: whatever these hackers do online looks like it came from <em>your</em>
+          home. If they use it to attack someone or do something illegal, it can be traced back to
+          you — even though you had no idea it was happening.
+        </p>
+        <p style="margin-top: var(--space-8);">
+          <a class="src" href="https://www.foxnews.com/tech/why-your-android-tv-box-may-secretly-part-botnet" target="_blank" rel="noopener">Researchers' findings, via Fox News ↗</a>
+        </p>
+      </div>
+    </div>
+
+    <!-- spying on your other devices (man-in-the-middle, in plain terms) -->
+    <div class="risk" id="risk-c">
+      <div class="risk-head">
+        <div>
+          <h3>It can spy on everything else in your home</h3>
+          <p>Once it's on your WiFi, the box can quietly read what your other devices send — and even send you to fake copies of real websites.</p>
+        </div>
+      </div>
+      <div class="risk-body">
+        <p style="margin-top:0;">
+          Your box sits on the same WiFi as your phones and laptops. Researchers found these boxes
+          carry the tools to <strong>quietly read the traffic from your other devices</strong> and
+          to <strong>send you to fake versions of real websites</strong> — a copycat of your bank
+          or email, built to grab your password as you type it. And it's not just passwords:
+          anything your devices send across your home network — <strong>private messages, photos,
+          files, even what's on your shared drives</strong> — can be quietly copied and sent off
+          too. You'd notice nothing unusual. That's how "free TV" can turn into a drained bank
+          account or a stolen identity.
+        </p>
+
+        <div id="spy-stage">
+          <svg id="spy-svg" viewBox="0 0 600 260" preserveAspectRatio="xMidYMid meet">
+            <!-- your normal traffic: devices -> box -> websites -->
+            <path class="proxy-flow on" id="spy-flow1" d="M158 120 C 195 120, 205 121, 234 121"/>
+            <path class="proxy-flow on" id="spy-flow2" d="M366 121 C 400 121, 415 120, 450 120"/>
+            <!-- leaked copy: box -> criminal -->
+            <path class="proxy-flow on" id="spy-leak" d="M300 152 C 322 184, 362 200, 402 206"/>
+
+            <!-- your devices -->
+            <rect class="proxy-box" x="32" y="92" width="126" height="58" rx="8"/>
+            <text class="proxy-label" x="95" y="116" text-anchor="middle">Your devices</text>
+            <text class="proxy-sub" x="95" y="131" text-anchor="middle">phone, laptop</text>
+
+            <!-- your box, secretly reading (danger) -->
+            <rect class="proxy-box router hijacked" id="spy-box" x="234" y="92" width="132" height="58" rx="8"/>
+            <text class="proxy-label" x="300" y="116" text-anchor="middle">Your box</text>
+            <text class="proxy-sub" x="300" y="131" text-anchor="middle">secretly reading</text>
+
+            <!-- fake look-alike websites the box sends you to -->
+            <rect class="proxy-box" x="450" y="92" width="120" height="58" rx="8"/>
+            <text class="proxy-label" x="510" y="116" text-anchor="middle">Fake Websites</text>
+            <text class="proxy-sub" x="510" y="131" text-anchor="middle">look normal to you</text>
+
+            <!-- the criminal collecting stolen data -->
+            <circle class="proxy-box stranger-node on" id="spy-criminal" cx="430" cy="210" r="30"/>
+            <text class="proxy-label" x="430" y="214" text-anchor="middle">Criminal</text>
+
+            <!-- stolen-data tag along the leak -->
+            <text class="proxy-sub" id="spy-leak-label" x="296" y="180" text-anchor="middle" style="fill: var(--color-danger-text); font-weight: 600;">passwords, files, photos</text>
+
+            <!-- packets: your own (calm) + the stolen copy (red) -->
+            <circle class="proxy-pkt-calm on" id="spy-pkt1" r="5"/>
+            <circle class="proxy-pkt-calm on" id="spy-pkt2" r="5"/>
+            <circle class="proxy-pkt on" id="spy-pkt-leak" r="5"/>
+          </svg>
+
+          <!-- portrait version for phones (vertical: devices → box → fake sites, leak → criminal) -->
+          <svg id="spy-svg-m" viewBox="0 0 340 510" preserveAspectRatio="xMidYMid meet">
+            <path class="proxy-flow on" id="spy-flow1-m" d="M170 90 C 170 120, 170 145, 170 170"/>
+            <path class="proxy-flow on" id="spy-flow2-m" d="M170 228 C 170 300, 170 360, 170 430"/>
+            <path class="proxy-flow on" id="spy-leak-m"  d="M245 208 C 282 236, 282 252, 274 276"/>
+
+            <rect class="proxy-box" x="95" y="30" width="150" height="58" rx="8"/>
+            <text class="proxy-label" x="170" y="54" text-anchor="middle">Your devices</text>
+            <text class="proxy-sub" x="170" y="69" text-anchor="middle">phone, laptop</text>
+
+            <rect class="proxy-box router hijacked" x="95" y="170" width="150" height="58" rx="8"/>
+            <text class="proxy-label" x="170" y="194" text-anchor="middle">Your box</text>
+            <text class="proxy-sub" x="170" y="209" text-anchor="middle">secretly reading</text>
+
+            <rect class="proxy-box" x="95" y="430" width="150" height="58" rx="8"/>
+            <text class="proxy-label" x="170" y="454" text-anchor="middle">Fake Websites</text>
+            <text class="proxy-sub" x="170" y="469" text-anchor="middle">look normal to you</text>
+
+            <circle class="proxy-box stranger-node on" cx="274" cy="312" r="34"/>
+            <text class="proxy-label" x="274" y="316" text-anchor="middle">Criminal</text>
+
+            <text class="proxy-sub" x="274" y="368" text-anchor="middle" style="fill: var(--color-danger-text); font-weight: 600;"><tspan x="274" dy="0">passwords,</tspan><tspan x="274" dy="15">files,</tspan><tspan x="274" dy="15">photos</tspan></text>
+
+            <circle class="proxy-pkt-calm on" id="spy-pkt1-m" r="5"/>
+            <circle class="proxy-pkt-calm on" id="spy-pkt2-m" r="5"/>
+            <circle class="proxy-pkt on" id="spy-pkt-leak-m" r="5"/>
+          </svg>
+        </div>
+
+        <p class="proxy-cap" style="margin-top: var(--space-12);">
+          Your traffic flows on as normal — but the box keeps a copy, and <b>your passwords, photos, and files can leak out to a criminal.</b>
+        </p>
+
+        <p style="margin-top: var(--space-16);">
+          The tools to do this — to read your other devices' traffic and steer you to fake sites —
+          were found sitting on these boxes by security researchers. Having one doesn't mean you're
+          being robbed today; it means the door has been left unlocked.
+        </p>
+        <p style="margin-top: var(--space-8);">
+          <a class="src" href="https://www.foxnews.com/tech/why-your-android-tv-box-may-secretly-part-botnet" target="_blank" rel="noopener">Researchers' findings, via Fox News ↗</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Lawsuits & enforcement ───────────────────────────────────────── -->
+  <section id="legal">
+    <div class="eyebrow">The fallout</div>
+    <h2>This is already being shut down in court</h2>
+    <p class="section-intro">
+      The companies whose channels are being copied are fighting back. They're suing the people
+      behind these boxes, and the two biggest US stores quietly stopped selling them.
+    </p>
+
+    <div class="card-grid">
+      <div class="card">
+        <span class="chip">2025 · LAWSUIT</span>
+        <h3>Dish Network sued a SuperBox seller</h3>
+        <p>Dish says some SuperBox channels were <strong>copied straight from its own paid Sling TV service</strong> and handed out to people who never paid for it.</p>
+        <div class="card-foot">
+          <a class="src" href="https://entertainment.slashdot.org/story/26/02/04/1826249/everyone-is-stealing-tv" target="_blank" rel="noopener">source ↗</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="chip">LAWSUIT</span>
+        <h3>Built on purpose for this</h3>
+        <p>Another lawsuit claims the box was <strong>designed and sold specifically</strong> to hand out other people's TV channels — that this was the whole point of the product, not an accident.</p>
+        <div class="card-foot">
+          <a class="src" href="https://lawfold.com/superbox-lawsuit/" target="_blank" rel="noopener">source ↗</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="chip">STORES</span>
+        <h3>Amazon &amp; Walmart pulled them</h3>
+        <p>Both stores <strong>quietly removed dozens of these boxes</strong> from their shelves over the stolen-channel problem — without waiting for any court to rule.</p>
+        <div class="card-foot">
+          <a class="src" href="https://www.streamtvinsider.com/video/exclusive-amazon-walmart-pull-streaming-boxes-linked-piracy" target="_blank" rel="noopener">source ↗</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="legal-note">
+      <p>
+        <strong>What this means for you:</strong> simply owning the box isn't a crime. But the
+        channels on it are being handed out without permission, which is against the law in the US.
+        Increasingly, that trouble is reaching <strong>the stores that sell the boxes and the people
+        who use them</strong> — not just the people running the operation behind the scenes.
+      </p>
+    </div>
+  </section>
+
+  <!-- ── FBI warning ──────────────────────────────────────────────────── -->
+  <section id="fbi">
+    <div class="eyebrow">Official warning</div>
+    <h2>Even the FBI has warned about these boxes</h2>
+    <div class="callout">
+      <div class="callout-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.4 8 10 4.6-1.6 8-5 8-10V5z"/><path d="M12 8v4M12 16h.01"/></svg>
+      </div>
+      <div class="callout-body">
+        <h3>These boxes can become a way into your home network</h3>
+        <p>
+          The FBI has warned that cheap streaming boxes like these get tampered with and used to
+          <strong>sneak into people's home internet</strong> and quietly pass strangers' activity
+          through it. A SuperBox isn't really "just a TV gadget" — the moment it's on your WiFi,
+          it's a little computer in your home running someone else's software, and you can't see
+          what it's doing.
+        </p>
+        <p style="margin-top: var(--space-12);">
+          <a class="src" href="https://www.foxnews.com/tech/why-your-android-tv-box-may-secretly-part-botnet" target="_blank" rel="noopener">FBI warning, reported by Fox News ↗</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Takeaway ─────────────────────────────────────────────────────── -->
+  <section id="takeaway">
+    <div class="eyebrow">The bottom line</div>
+    <h2>"Free TV": Too Good to Be True</h2>
+    <div class="takeaway">
+      <p class="lead">The low price hides the real deal: in exchange for "free" channels, you let a little computer you can't see into your home — one that answers to strangers, not to you.</p>
+      <p>The stolen channels can get you tangled up in legal trouble, but the quieter problems may matter more: software you never asked for, built into the box before you bought it, and your home internet secretly shared with people you'll never meet — with their activity looking like it came from you.</p>
+      <p class="vlan">
+        If you have one of these boxes, the safest move is to <strong>unplug it</strong>. If you
+        really want to keep using it, at least keep it on a separate guest WiFi network — never the
+        same one as your phones and computers — so it can't reach your other devices.
+      </p>
+    </div>
+  </section>
+
+  <!-- ── Sources ──────────────────────────────────────────────────────── -->
+  <section id="sources">
+    <div class="eyebrow">Learn more</div>
+    <h2>Sources</h2>
+    <div class="sources">
+      <div class="source-item"><span class="s-num">1</span><div class="s-body"><div class="s-title">"Everyone Is Stealing TV" — Dish vs. SuperBox reseller (Sling TV rip)</div><a class="s-url" href="https://entertainment.slashdot.org/story/26/02/04/1826249/everyone-is-stealing-tv" target="_blank" rel="noopener">entertainment.slashdot.org/story/26/02/04/1826249/everyone-is-stealing-tv</a></div></div>
+      <div class="source-item"><span class="s-num">2</span><div class="s-body"><div class="s-title">SuperBox piracy lawsuit — device designed for infringement</div><a class="s-url" href="https://lawfold.com/superbox-lawsuit/" target="_blank" rel="noopener">lawfold.com/superbox-lawsuit/</a></div></div>
+      <div class="source-item"><span class="s-num">3</span><div class="s-body"><div class="s-title">Amazon &amp; Walmart pull streaming boxes linked to piracy</div><a class="s-url" href="https://www.streamtvinsider.com/video/exclusive-amazon-walmart-pull-streaming-boxes-linked-piracy" target="_blank" rel="noopener">streamtvinsider.com/video/exclusive-amazon-walmart-pull-streaming-boxes-linked-piracy</a></div></div>
+      <div class="source-item"><span class="s-num">4</span><div class="s-body"><div class="s-title">Why your Android TV box may secretly be working against you — FBI warning, hidden software, and researchers' findings on home internet being shared</div><a class="s-url" href="https://www.foxnews.com/tech/why-your-android-tv-box-may-secretly-part-botnet" target="_blank" rel="noopener">foxnews.com/tech/why-your-android-tv-box-may-secretly-part-botnet</a></div></div>
+    </div>
+  </section>
+
+  <footer>
+    A plain-language explainer to help you understand a device you may already own. If you keep one, put it on a separate guest WiFi network. Every claim links to its source above.
+  </footer>
+
+</main>
+
+<script>
+/* ═══ Dark toggle (canonical) ════════════════════════════════════════════ */
+const DARK_TOGGLE_SUN =
+  '<circle cx="10" cy="10" r="3.5"/>' +
+  '<path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42"/>';
+const DARK_TOGGLE_MOON = '<path d="M16 11.5A6 6 0 1 1 8.5 4a4.5 4.5 0 0 0 7.5 7.5z"/>';
+function toggleDark() {
+  const isDark = document.body.classList.toggle('dark');
+  document.getElementById('darkIcon').innerHTML = isDark ? DARK_TOGGLE_MOON : DARK_TOGGLE_SUN;
+  document.getElementById('darkLabel').textContent = isDark ? 'Light mode' : 'Dark mode';
+  buildMarkers();
+  drawEdges();
+}
+
+/* ═══ Flow timeline ══════════════════════════════════════════════════════ */
+const NODE_IDS = ['source','ripper','servers','box','viewer'];
+const EDGES = [
+  { src:'source',  dst:'ripper',  type:'pirate', id:'source-ripper'  },
+  { src:'ripper',  dst:'servers', type:'pirate', id:'ripper-servers' },
+  { src:'servers', dst:'box',     type:'pirate', id:'servers-box'    },
+  { src:'box',     dst:'viewer',  type:'clean',  id:'box-viewer'     },
+];
+const EDGE_STYLES = {
+  clean:  { stroke:'var(--edge-clean)',  dasharray:null,  marker:'clean'  },
+  pirate: { stroke:'var(--edge-pirate)', dasharray:'4,4', marker:'pirate' },
+};
+const STEPS = [
+  { n:0, title:'The trip a channel takes',
+    desc:'A real TV channel gets copied, re-sold by someone who never paid for it, and sent to your living room. Step through it to see what happens at each stop.',
+    nodes:NODE_IDS, edges:EDGES.map(e=>e.id) },
+  { n:1, title:'It starts with a real channel',
+    desc:'A normal, paid-for channel — cable, satellite, a sports package, or a service like Sling TV — broadcasts to people who paid for it.',
+    nodes:['source'], edges:[] },
+  { n:2, title:'A criminal copies the live channel',
+    desc:'A criminal records that live channel as it plays and keeps a copy. In a 2025 lawsuit, Dish said some SuperBox channels were copied straight from its own Sling TV service.',
+    nodes:['source','ripper'], edges:['source-ripper'] },
+  { n:3, title:'The copies pile up on their servers',
+    desc:'They gather hundreds of these copied channels onto their own computers and get ready to hand them out — none of it paid for or allowed.',
+    nodes:['ripper','servers'], edges:['ripper-servers'] },
+  { n:4, title:'Your SuperBox connects to those servers',
+    desc:'The apps that came on the box quietly connect to those computers and pull the channels in. To you, it just looks like a normal, tidy channel guide.',
+    nodes:['servers','box'], edges:['servers-box'] },
+  { n:5, title:'You watch "free" TV',
+    desc:'Live TV, sports, and pay-per-view with no monthly bill. But it can stop working at any time — the moment the people supplying it get shut down, the channels go dark.',
+    nodes:['box','viewer'], edges:['box-viewer'] },
+];
+const NODE_W = 122, NODE_H = 76;
+/* Positions depend on the live canvas width so the flow fits any screen:
+   wide → horizontal zig-zag scaled to the width; narrow (phones) → vertical stack. */
+function computeLayout(w) {
+  const order = NODE_IDS;
+  const pos = {};
+  if (w < 480) {
+    const leftX = 12, rightX = Math.max(leftX, w - NODE_W - 12);
+    const topY = 14, stepY = 100;
+    order.forEach((id, i) => { pos[id] = { x: i % 2 === 0 ? leftX : rightX, y: topY + i * stepY }; });
+    return { pos, height: topY + (order.length - 1) * stepY + NODE_H + 14 };
+  }
+  const stepX = (w - NODE_W - 8) / (order.length - 1);
+  order.forEach((id, i) => { pos[id] = { x: 4 + i * stepX, y: i % 2 === 0 ? 116 : 28 }; });
+  return { pos, height: 300 };
+}
+
+let currentStep = 0, playing = false, playTimer = null;
+
+const canvas = document.getElementById('canvas');
+const svgEl = document.getElementById('edge-svg');
+const svgDefs = document.getElementById('svg-defs');
+const scrubber = document.getElementById('scrubber');
+const scrubLabels = document.getElementById('scrubber-labels');
+const btnPrev = document.getElementById('btn-prev');
+const btnNext = document.getElementById('btn-next');
+const btnPlay = document.getElementById('btn-play');
+const playIconEl = document.getElementById('play-icon');
+const flowCounter = document.getElementById('flow-counter');
+const flowTitle = document.getElementById('flow-title');
+const flowDesc = document.getElementById('flow-desc');
+
+function buildMarkers() {
+  const types = [
+    { id:'clean',  color:'var(--edge-clean)'  },
+    { id:'pirate', color:'var(--edge-pirate)' },
+  ];
+  svgDefs.innerHTML = types.map(t => `
+    <marker id="arr-${t.id}" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0.5 L6.5,3.5 L0,6.5 Z" fill="${t.color}" stroke="${t.color}" stroke-width="0"/>
+    </marker>`).join('');
+}
+function nodeBox(el) {
+  const nr = el.getBoundingClientRect(), cr = canvas.getBoundingClientRect();
+  return { cx: nr.left - cr.left + nr.width/2, cy: nr.top - cr.top + nr.height/2, hw: nr.width/2, hh: nr.height/2 };
+}
+/* point where the ray from a box's center toward (tx,ty) crosses the box border,
+   optionally pushed `gap` px further out so the line connects to the edge with a small gap */
+function borderPoint(box, tx, ty, gap = 0) {
+  const dx = tx - box.cx, dy = ty - box.cy;
+  if (dx === 0 && dy === 0) return { x: box.cx, y: box.cy };
+  const scale = 1 / Math.max(Math.abs(dx)/box.hw, Math.abs(dy)/box.hh);
+  const bx = box.cx + dx*scale, by = box.cy + dy*scale;
+  if (!gap) return { x: bx, y: by };
+  const L = Math.hypot(dx, dy);
+  return { x: bx + dx/L*gap, y: by + dy/L*gap };
+}
+function cubicPath(sx,sy,dx,dy) {
+  const cx = (dx-sx)*0.5;
+  return `M${sx},${sy} C${sx+cx},${sy} ${dx-cx},${dy} ${dx},${dy}`;
+}
+function drawEdges() {
+  [...svgEl.querySelectorAll('path.edge')].forEach(p => p.remove());
+  const step = STEPS[currentStep];
+  const activeEdges = new Set(step.edges);
+  const isOverview = currentStep === 0;
+  for (const edge of EDGES) {
+    const sBox = nodeBox(document.getElementById('n-'+edge.src));
+    const dBox = nodeBox(document.getElementById('n-'+edge.dst));
+    const s = borderPoint(sBox, dBox.cx, dBox.cy, 2);
+    const d = borderPoint(dBox, sBox.cx, sBox.cy, 4);
+    const style = EDGE_STYLES[edge.type];
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.classList.add('edge');
+    path.setAttribute('d', cubicPath(s.x,s.y,d.x,d.y));
+    path.setAttribute('fill','none');
+    path.setAttribute('stroke', style.stroke);
+    path.setAttribute('stroke-width','1.75');
+    path.setAttribute('marker-end', `url(#arr-${style.marker})`);
+    if (style.dasharray) path.setAttribute('stroke-dasharray', style.dasharray);
+    const isActive = isOverview || activeEdges.has(edge.id);
+    if (!isActive) { path.classList.add('dimmed'); }
+    else { path.classList.add('active'); if (!isOverview) path.classList.add('flowing'); }
+    svgEl.appendChild(path);
+  }
+}
+function applyNodeHighlight() {
+  const step = STEPS[currentStep];
+  const activeNodes = new Set(step.nodes);
+  const isOverview = currentStep === 0;
+  for (const id of NODE_IDS) {
+    const el = document.getElementById('n-'+id);
+    el.classList.remove('dimmed','active');
+    el.classList.add(isOverview || activeNodes.has(id) ? 'active' : 'dimmed');
+  }
+}
+function render(i) {
+  currentStep = i;
+  const step = STEPS[i];
+  flowCounter.textContent = i === 0 ? 'OVERVIEW' : `STEP ${step.n} / ${STEPS.length-1}`;
+  flowTitle.textContent = step.title;
+  flowDesc.textContent = step.desc;
+  applyNodeHighlight();
+  drawEdges();
+  scrubber.value = i;
+  updateScrubberFill();
+  btnPrev.disabled = i === 0;
+  btnNext.disabled = i === STEPS.length-1;
+}
+function updateScrubberFill() {
+  const max = parseInt(scrubber.max,10), val = parseInt(scrubber.value,10);
+  const pct = (val/max)*100;
+  scrubber.style.background =
+    `linear-gradient(to right, var(--color-fill-brand-strong) 0%, var(--color-fill-brand-strong) ${pct}%, var(--color-stroke-weak) ${pct}%, var(--color-stroke-weak) 100%)`;
+}
+function buildLabels() {
+  scrubLabels.innerHTML = '';
+  ['—','1','2','3','4','5'].forEach(l => {
+    const s = document.createElement('span'); s.textContent = l; scrubLabels.appendChild(s);
+  });
+}
+const ICON_PLAY = '<polygon points="4,2 14,8 4,14" fill="currentColor" stroke="none"/>';
+const ICON_PAUSE = '<rect x="3" y="2" width="3.5" height="12" rx="1" fill="currentColor" stroke="none"/><rect x="9.5" y="2" width="3.5" height="12" rx="1" fill="currentColor" stroke="none"/>';
+function setPlayIcon(p){ playIconEl.innerHTML = p ? ICON_PAUSE : ICON_PLAY; }
+function startPlay(){ if (currentStep >= STEPS.length-1) render(0); playing=true; setPlayIcon(true); scheduleNext(); }
+function pausePlay(){ playing=false; setPlayIcon(false); if (playTimer){ clearTimeout(playTimer); playTimer=null; } }
+function scheduleNext(){
+  playTimer = setTimeout(() => {
+    if (!playing) return;
+    const next = currentStep+1; render(next);
+    if (next >= STEPS.length-1) pausePlay(); else scheduleNext();
+  }, 1900);
+}
+function togglePlay(){ playing ? pausePlay() : startPlay(); }
+btnPlay.addEventListener('click', togglePlay);
+scrubber.addEventListener('input', () => { if (playing) pausePlay(); render(parseInt(scrubber.value,10)); });
+btnPrev.addEventListener('click', () => { if (playing) pausePlay(); if (currentStep>0) render(currentStep-1); });
+btnNext.addEventListener('click', () => { if (playing) pausePlay(); if (currentStep<STEPS.length-1) render(currentStep+1); });
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.key === 'ArrowRight'){ e.preventDefault(); if (playing) pausePlay(); if (currentStep<STEPS.length-1) render(currentStep+1); }
+  else if (e.key === 'ArrowLeft'){ e.preventDefault(); if (playing) pausePlay(); if (currentStep>0) render(currentStep-1); }
+});
+
+/* drag nodes */
+let drag = null;
+function setupDrag() {
+  for (const id of NODE_IDS) {
+    document.getElementById('n-'+id).addEventListener('pointerdown', onDown);
+  }
+}
+function onDown(e) {
+  const el = e.currentTarget, nr = el.getBoundingClientRect();
+  drag = { el, gx: e.clientX-nr.left, gy: e.clientY-nr.top, w: nr.width, h: nr.height };
+  el.classList.add('dragging'); el.setPointerCapture(e.pointerId); e.preventDefault();
+  window.addEventListener('pointermove', onMove);
+  window.addEventListener('pointerup', onUp);
+}
+function onMove(e) {
+  if (!drag) return;
+  const cr = canvas.getBoundingClientRect();
+  let x = e.clientX-cr.left-drag.gx, y = e.clientY-cr.top-drag.gy;
+  x = Math.max(0, Math.min(cr.width-drag.w, x));
+  y = Math.max(0, Math.min(cr.height-drag.h, y));
+  drag.el.style.left = x+'px'; drag.el.style.top = y+'px';
+  drawEdges();
+}
+function onUp() {
+  if (!drag) return;
+  drag.el.classList.remove('dragging'); drag = null;
+  window.removeEventListener('pointermove', onMove);
+  window.removeEventListener('pointerup', onUp);
+}
+function resetLayout() {
+  const wrap = document.getElementById('canvas-wrap');
+  const { pos, height } = computeLayout(canvas.getBoundingClientRect().width);
+  wrap.style.height = height + 'px';
+  for (const [id,p] of Object.entries(pos)) {
+    const el = document.getElementById('n-'+id);
+    el.style.left = p.x+'px'; el.style.top = p.y+'px';
+  }
+  drawEdges();
+}
+document.getElementById('btn-reset').addEventListener('click', resetLayout);
+
+function initFlow() {
+  resetLayout();
+  scrubber.max = STEPS.length-1;
+  buildMarkers(); buildLabels(); setupDrag();
+  requestAnimationFrame(() => requestAnimationFrame(() => render(0)));
+}
+
+/* ═══ Home internet shared with hackers — hackers → your box → their target ═ */
+function ptOnPath(pathEl, t) {
+  const len = pathEl.getTotalLength();
+  return pathEl.getPointAtLength(len * t);
+}
+const mqMobile = window.matchMedia('(max-width: 560px)');
+/* animate the packet on whichever (landscape/portrait) variant is currently shown */
+function animateFlow(pathId, pktId, t) {
+  const path = document.getElementById(pathId);
+  const pkt = document.getElementById(pktId);
+  if (!path || !pkt) return;
+  const p = ptOnPath(path, t);
+  pkt.setAttribute('cx', p.x); pkt.setAttribute('cy', p.y);
+}
+let proxyRAF = null, proxyT = 0;
+function proxyTick() {
+  proxyT = (proxyT + 0.010) % 1;
+  const m = mqMobile.matches;
+  animateFlow(m ? 'flow-in-m'  : 'flow-in',  m ? 'pkt-in-m'  : 'pkt-in',  proxyT);
+  animateFlow(m ? 'flow-out-m' : 'flow-out', m ? 'pkt-out-m' : 'pkt-out', proxyT);
+  proxyRAF = requestAnimationFrame(proxyTick);
+}
+
+/* ═══ Spying on your other devices — devices → box (reads) → websites, copy → criminal ═══ */
+let spyT = 0, spyRAF = null;
+function spyTick() {
+  spyT = (spyT + 0.010) % 1;
+  const m = mqMobile.matches;
+  animateFlow(m ? 'spy-flow1-m' : 'spy-flow1', m ? 'spy-pkt1-m'    : 'spy-pkt1',    spyT);
+  animateFlow(m ? 'spy-flow2-m' : 'spy-flow2', m ? 'spy-pkt2-m'    : 'spy-pkt2',    spyT);
+  animateFlow(m ? 'spy-leak-m'  : 'spy-leak',  m ? 'spy-pkt-leak-m': 'spy-pkt-leak', spyT);
+  spyRAF = requestAnimationFrame(spyTick);
+}
+
+/* ═══ Init ═══════════════════════════════════════════════════════════════ */
+initFlow();
+proxyRAF = requestAnimationFrame(proxyTick);
+spyRAF = requestAnimationFrame(spyTick);
+window.addEventListener('resize', resetLayout);
+</script>
+</body>
+</html>
